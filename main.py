@@ -162,7 +162,7 @@ def predict_data(dataset):
 
 #
 #   Brief:
-#       Runs the predefined set of reports (global and weekly) and plots them in a single image
+#       Runs the predefined set of reports (global and weekly) and plots them in a single image.
 #
 def show_global_report():
 	dataset = parse_data(sys.argv[1])
@@ -197,17 +197,44 @@ def show_global_report():
 
 #
 #   Brief:
+#       Runs report for the last given number of days.
+#   Parameters:
+#       - days: Number of days to be included in the report starting from the bottom of the dataset.
+#
+def show_custom_tail(days):
+	dataset = parse_data(sys.argv[1])
+	print(dataset)
+
+	dataset = cleanup_data(dataset)
+	dataset = enrich_data(dataset)
+	dataset = select_data_tail(dataset, days)
+	print(dataset)
+
+	figure, tail_report = mp.subplots(1)
+	figure.suptitle("ITALY COVID-19 LINEAR REGRESSION")
+	tail_report.set_title("Last " + str(days) + " days")
+	tail_report.autoscale()
+	tail_report.scatter(dataset["data"], dataset["rapporto"])
+
+	predictor = predict_data(dataset)
+	tail_report.plot(dataset["data"], predictor, color="red")
+
+	mp.show()
+
+#
+#   Brief:
 #       Program entrypoint
 #   Parameters:
 #       - argv[1]: points the CSV file to be analyzed
 #
 def main():
 	if (len(sys.argv) < 2):
-		print("Usage: ./main.py <csv file>")
+		print("Usage: ./main.py <csv file> [last n days]")
 		exit(-1)
 	if (len(sys.argv) == 2):
 		show_global_report()
-
+	elif (len(sys.argv) == 3):
+		show_custom_tail(int(sys.argv[2]))
 
 if __name__ == "__main__":
 	main()
