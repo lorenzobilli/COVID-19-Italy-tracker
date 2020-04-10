@@ -100,7 +100,7 @@ def enrich_data(dataset):
 def select_data_head(dataset, quantity):
 	if quantity > dataset.shape[0]:
 		return
-	for n in range(1 + quantity, dataset.shape[0]):
+	for n in range(1 + quantity, dataset.shape[0] + 1):
 		dataset = dataset.drop(index=n)
 	return dataset
 
