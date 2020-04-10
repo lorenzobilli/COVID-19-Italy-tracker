@@ -251,15 +251,17 @@ def show_custom_head(days):
 #   Brief:
 #       Program entrypoint
 #   Parameters:
-#       - argv[1]: points the CSV file to be analyzed
+#       - argv[1]: points the CSV file to be analyzed.
+#       - argv[2]: days to be checked starting from the beginning. 0 to ignore this value.
+#       - argv[3]: days to be checked starting from the end. 0 to ignore this value.
 #
 def main():
 	if len(sys.argv) < 4:
 		print("Usage: ./main.py <csv file> <first n days | 0> <last n days | 0>")
 		exit(-1)
-	if int(sys.argv[2] == 0 and int(sys.argv[3] != 0)):
+	if int(sys.argv[2]) == 0 and int(sys.argv[3]) != 0:
 		show_custom_tail(int(sys.argv[3]))
-	if int(sys.argv[3] != 0 and int(sys.argv[3]) == 0):
+	if int(sys.argv[2]) != 0 and int(sys.argv[3]) == 0:
 		show_custom_head(int(sys.argv[2]))
 	if int(sys.argv[2]) == 0 and int(sys.argv[3]) == 0:
 		show_global_report()
