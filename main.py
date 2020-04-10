@@ -223,18 +223,47 @@ def show_custom_tail(days):
 
 #
 #   Brief:
+#       Runs report for the first given number of days.
+#   Parameters:
+#       - days: Number of days to be included in the report starting from the top of the dataset.
+#
+def show_custom_head(days):
+	dataset = parse_data(sys.argv[1])
+	print(dataset)
+
+	dataset = cleanup_data(dataset)
+	dataset = enrich_data(dataset)
+	dataset = select_data_head(dataset, days)
+	print(dataset)
+
+	figure, head_report = mp.subplots(1)
+	figure.suptitle("ITALY COVID-19 LINEAR REGRESSION")
+	head_report.set_title("First " + str(days) + " days")
+	head_report.autoscale()
+	head_report.scatter(dataset["data"], dataset["rapporto"])
+
+	predictor = predict_data(dataset)
+	head_report.plot(dataset["data"], predictor, color="red")
+
+	mp.show()
+
+#
+#   Brief:
 #       Program entrypoint
 #   Parameters:
 #       - argv[1]: points the CSV file to be analyzed
 #
 def main():
-	if (len(sys.argv) < 2):
-		print("Usage: ./main.py <csv file> [last n days]")
+	if len(sys.argv) < 4:
+		print("Usage: ./main.py <csv file> <first n days | 0> <last n days | 0>")
 		exit(-1)
-	if (len(sys.argv) == 2):
+	if int(sys.argv[2] == 0 and int(sys.argv[3] != 0)):
+		show_custom_tail(int(sys.argv[3]))
+	if int(sys.argv[3] != 0 and int(sys.argv[3]) == 0):
+		show_custom_head(int(sys.argv[2]))
+	if int(sys.argv[2]) == 0 and int(sys.argv[3]) == 0:
 		show_global_report()
-	elif (len(sys.argv) == 3):
-		show_custom_tail(int(sys.argv[2]))
+
 
 if __name__ == "__main__":
 	main()
