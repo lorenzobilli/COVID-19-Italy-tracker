@@ -144,7 +144,7 @@ def select_data_range(dataset, begin, end):
 
 #
 #   Brief:
-#       Predict trend with linear regression on the given dataset values.
+#       Predicts trend with linear regression on the given dataset values.
 #   Parameters:
 #       - dataset: Dataset where the prediction shall be made.
 #   Returns:
@@ -162,6 +162,41 @@ def predict_data(dataset):
 
 #
 #   Brief:
+#       Runs the predefined set of reports (global and weekly) and plots them in a single image
+#
+def show_global_report():
+	dataset = parse_data(sys.argv[1])
+	print(dataset)
+
+	dataset = cleanup_data(dataset)
+	dataset = enrich_data(dataset)
+	print(dataset)
+
+	figure, (global_report, weekly_report) = mp.subplots(2)
+	figure.suptitle("ITALY COVID-19 LINEAR REGRESSION")
+	global_report.set_title("Total")
+	weekly_report.set_title("Weekly")
+	global_report.autoscale()
+	weekly_report.autoscale()
+	global_report.scatter(dataset["data"], dataset["rapporto"])
+
+	predictor = predict_data(dataset)
+	global_report.plot(dataset["data"], predictor, color="red")
+
+	weekly_dataset = parse_data(sys.argv[1])
+	weekly_dataset = cleanup_data(weekly_dataset)
+	weekly_dataset = enrich_data(weekly_dataset)
+	weekly_dataset = select_data_tail(weekly_dataset, 7)
+	print(weekly_dataset)
+
+	weekly_report.scatter(weekly_dataset["data"], weekly_dataset["rapporto"])
+	weekly_predictor = predict_data(weekly_dataset)
+	weekly_report.plot(weekly_dataset["data"], weekly_predictor, color="red")
+
+	mp.show()
+
+#
+#   Brief:
 #       Program entrypoint
 #   Parameters:
 #       - argv[1]: points the CSV file to be analyzed
@@ -170,36 +205,8 @@ def main():
 	if (len(sys.argv) < 2):
 		print("Usage: ./main.py <csv file>")
 		exit(-1)
-
-	dataset = parse_data(sys.argv[1])
-	print(dataset)
-
-	dataset = cleanup_data(dataset)
-	dataset = enrich_data(dataset)
-	print(dataset)
-
-	figure, (total, weekly) = mp.subplots(2)
-	figure.suptitle("ITALY COVID-19 LINEAR REGRESSION")
-	total.set_title("Total")
-	weekly.set_title("Weekly")
-	total.autoscale()
-	weekly.autoscale()
-	total.scatter(dataset["data"], dataset["rapporto"])
-
-	predictor = predict_data(dataset)
-	total.plot(dataset["data"], predictor, color="red")
-
-	weekly_dataset = parse_data(sys.argv[1])
-	weekly_dataset = cleanup_data(weekly_dataset)
-	weekly_dataset = enrich_data(weekly_dataset)
-	weekly_dataset = select_data_tail(weekly_dataset, 7)
-	print(weekly_dataset)
-
-	weekly.scatter(weekly_dataset["data"], weekly_dataset["rapporto"])
-	weekly_predictor = predict_data(weekly_dataset)
-	weekly.plot(weekly_dataset["data"], weekly_predictor, color="red")
-
-	mp.show()
+	if (len(sys.argv) == 2):
+		show_global_report()
 
 
 if __name__ == "__main__":
