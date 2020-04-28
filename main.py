@@ -52,7 +52,7 @@ def cleanup_data(dataset):
 		"totale_ospedalizzati",
 		"isolamento_domiciliare",
 		"totale_positivi",
-		"nuovi_positivi",
+		"variazione_totale_positivi",
 		"dimessi_guariti",
 		"deceduti",
 		"totale_casi"
@@ -83,7 +83,7 @@ def enrich_data(dataset):
 
 	ratio = [0]
 	for n in range(1, dataset.shape[0]):
-		ratio.append(dataset.at[n, "variazione_totale_positivi"] / dataset.at[n, "nuovi_tamponi"] * 100)
+		ratio.append(dataset.at[n, "nuovi_positivi"] / dataset.at[n, "nuovi_tamponi"] * 100)
 	dataset["rapporto"] = ratio
 	dataset = dataset.drop(index=0)
 	return dataset
