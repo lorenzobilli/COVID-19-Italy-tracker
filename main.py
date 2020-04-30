@@ -20,6 +20,7 @@ import matplotlib.pyplot as mp
 import sys
 import datetime
 import pandas
+import numpy
 
 #
 #   Brief:
@@ -76,10 +77,17 @@ def cleanup_data(dataset):
 #
 def enrich_data(dataset):
 	new_tests = [0]
+	new_cases = [0]
 	for n in range(1, dataset.shape[0]):
 		new_tests.append(dataset.at[n, "tamponi"] - dataset.at[n - 1, "tamponi"])
+		if numpy.isnan(dataset.at[n - 1, "casi_testati"]):
+			new_cases.append(numpy.nan)
+		else:
+			new_cases.append(dataset.at[n, "casi_testati"] - dataset.at[n - 1, "casi_testati"])
 	dataset = dataset.drop(columns="tamponi")
+	dataset = dataset.drop(columns="casi_testati")
 	dataset["nuovi_tamponi"] = new_tests
+	dataset["nuovi_casi_testati"] = new_cases
 
 	ratio = [0]
 	for n in range(1, dataset.shape[0]):
@@ -165,6 +173,8 @@ def predict_data(dataset):
 #       Runs the predefined set of reports (global and weekly) and plots them in a single image.
 #
 def show_global_report():
+	pandas.set_option("display.max_rows", None)
+
 	dataset = parse_data(sys.argv[1])
 	print(dataset)
 
@@ -202,6 +212,8 @@ def show_global_report():
 #       - days: Number of days to be included in the report starting from the bottom of the dataset.
 #
 def show_custom_tail(days):
+	pandas.set_option("display.max_rows", None)
+
 	dataset = parse_data(sys.argv[1])
 	print(dataset)
 
@@ -228,6 +240,8 @@ def show_custom_tail(days):
 #       - days: Number of days to be included in the report starting from the top of the dataset.
 #
 def show_custom_head(days):
+	pandas.set_option("display.max_rows", None)
+
 	dataset = parse_data(sys.argv[1])
 	print(dataset)
 
