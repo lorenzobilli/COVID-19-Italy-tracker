@@ -90,9 +90,16 @@ def enrich_data(dataset):
 	dataset["nuovi_casi_testati"] = new_cases
 
 	ratio = [0]
+	validated = [0]
 	for n in range(1, dataset.shape[0]):
-		ratio.append(dataset.at[n, "nuovi_positivi"] / dataset.at[n, "nuovi_tamponi"] * 100)
+		if numpy.isnan(dataset.at[n, "nuovi_casi_testati"]):
+			ratio.append(dataset.at[n, "nuovi_positivi"] / dataset.at[n, "nuovi_tamponi"] * 100)
+			validated.append(False)
+		else:
+			ratio.append(dataset.at[n, "nuovi_positivi"] / dataset.at[n, "nuovi_casi_testati"] * 100)
+			validated.append(True)
 	dataset["rapporto"] = ratio
+	dataset["validati"] = validated
 	dataset = dataset.drop(index=0)
 	return dataset
 
