@@ -268,6 +268,28 @@ def show_custom_head(days):
 
 	mp.show()
 
+def print_splashscreen():
+	print("")
+	print(" / ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \\")
+	print("|  /~~\\                                                               /~~\\  |")
+	print("|\\ \\   |           ____ _____     _____ ____        _  ___           |   / /|")
+	print("| \\   /|          / ___/ _ \\ \\   / /_ _|  _ \\      / |/ _ \\          |\\   / |")
+	print("|  ~~  |         | |  | | | \\ \\ / / | || | | |_____| | (_) |         |  ~~  |")
+	print("|      |         | |__| |_| |\\ V /  | || |_| |_____| |\\__, |         |      |")
+	print("|      |          \\____\\___/  \\_/  |___|____/      |_|  /_/          |      |")
+	print("|      |                                                             |      |")
+	print("|      |   ___ _        _         _                  _               |      |")
+	print("|      |  |_ _| |_ __ _| |_   _  | |_ _ __ __ _  ___| | _____ _ __   |      |")
+	print("|      |   | || __/ _` | | | | | | __| '__/ _` |/ __| |/ / _ \\ '__|  |      |")
+	print("|      |   | || || (_| | | |_| | | |_| | | (_| | (__|   <  __/ |     |      |")
+	print("|      |  |___|\\__\\__,_|_|\\__, |  \\__|_|  \\__,_|\\___|_|\\_\\___|_|     |      |")
+	print("|      |                  |___/                                      |      |")
+	print("|      |                                                             |      |")
+	print(" \\     |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|     /")
+	print("  \\   /                                                               \\   /")
+	print("   ~~~                                                                 ~~~")
+	print("")
+
 #
 #   Brief:
 #       Program entrypoint
@@ -277,15 +299,27 @@ def show_custom_head(days):
 #       - argv[3]: days to be checked starting from the end. 0 to ignore this value.
 #
 def main():
-	if len(sys.argv) < 4:
-		print("Usage: ./main.py <csv file> <first n days | 0> <last n days | 0>")
+
+	if len(sys.argv) < 2:
+		print("Percorso file dati CSV mancante")
 		exit(-1)
-	if int(sys.argv[2]) == 0 and int(sys.argv[3]) != 0:
-		show_custom_tail(int(sys.argv[3]))
-	if int(sys.argv[2]) != 0 and int(sys.argv[3]) == 0:
-		show_custom_head(int(sys.argv[2]))
-	if int(sys.argv[2]) == 0 and int(sys.argv[3]) == 0:
-		show_global_report()
+
+	print_splashscreen()
+
+	leave = False
+	while not leave:
+		print("1) Andamento nazionale")
+		print("2) Andamento regionale")
+		print("3) Uscita")
+		option = input(">: ")
+		if int(option) == 1:
+			show_global_report()
+		elif int(option) == 2:
+			print("Funzione attualmente non implementata")
+		elif int(option) == 3:
+			leave = True
+		else:
+			print("Opzione selezionata non valida")
 
 
 if __name__ == "__main__":
