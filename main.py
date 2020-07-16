@@ -34,7 +34,7 @@ def parse_data(feed):
 	raw_data = pandas.read_csv(feed, parse_dates=[0])
 	dataset = pandas.DataFrame(raw_data)
 	# We can already drop some NaN values here
-	dataset = dataset.drop(columns=[ "stato", "note_it", "note_en" ])
+	dataset = dataset.drop(columns=[ "stato", "note" ])
 	return dataset
 
 #
