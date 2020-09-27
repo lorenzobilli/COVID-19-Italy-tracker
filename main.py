@@ -254,18 +254,39 @@ def main():
 
 	print_splashscreen()
 
-	leave = False
-	while not leave:
+	while True:
 		print("1) Andamento nazionale")
 		print("2) Andamento regionale")
 		print("3) Uscita")
 		option = input(">: ")
 		if int(option) == 1:
-			show_national_report(national_data_path)
+			while True:
+				print("1) Visualizza report globale")
+				print("2) Visualizza primi ... giorni")
+				print("3) Visualizza ultimi ... giorni")
+				print("4) Visualizza intervallo personalizzato")
+				print("5) Indietro")
+				national_option = input(">: ")
+				if int(national_option) == 1:
+					show_national_report(national_data_path)
+				elif int(national_option) == 2:
+					begin = input("Numero giorni: ")
+					show_national_report(national_data_path, begin = begin)
+				elif int(national_option) == 3:
+					end = input("Numero giorni: ")
+					show_national_report(national_data_path, end = end)
+				elif int(national_option) == 4:
+					begin = input("Giorno iniziale: ")
+					end = input("Giorno finale: ")
+					show_national_report(national_data_path, begin, end)
+				elif int(national_option) == 5:
+					break
+				else:
+					print("Opzione selezionata non valida")
 		elif int(option) == 2:
 			print("Funzione attualmente non implementata")
 		elif int(option) == 3:
-			leave = True
+			break
 		else:
 			print("Opzione selezionata non valida")
 
