@@ -176,98 +176,41 @@ def predict_data(dataset):
 	predictor = linear_regressor.predict(x)
 	return predictor
 
+
 #
 #   Brief:
-#       Runs the predefined set of reports (global and weekly) and plots them in a single image.
+#       Runs a report based on the given parameters. By default it plots the global report.
+#   Parameters:
+#       - dataset_path: Path pointing to the CSV file used as dataset.
+#       - begin: Number of days to analyze in the report starting from the beginning.
+#       - end: Number of days to analyze in the report starting from the end.
 #
-def show_global_report(dataset_path):
+def show_national_report(dataset_path, begin = None, end = None):
 	pandas.set_option("display.max_rows", None)
 
 	dataset = parse_data(dataset_path)
-	print(dataset)
-
 	dataset = cleanup_data(dataset)
 	dataset = enrich_data(dataset)
 	print(dataset)
 
-	figure, (global_report, weekly_report) = mp.subplots(2)
+	figure, report = mp.subplots(1)
 	figure.suptitle("ITALY COVID-19 LINEAR REGRESSION")
-	global_report.set_title("Total")
-	weekly_report.set_title("Weekly")
-	global_report.autoscale()
-	weekly_report.autoscale()
-	global_report.scatter(dataset["data"], dataset["rapporto"])
+	if begin != None and end != None:
+		report.set_title("From day " + str(begin) + " to day " + str(end))
+	elif begin != None and end == None:
+		report.set_title("First " + str(begin) + " days")
+	elif begin == None and end != None:
+		report.set_title("Last " + str(end) + " days")
+	else:
+		report.set_title("Global report")
+	report.autoscale()
+	report.scatter(dataset["data"], dataset["rapporto"])
 
 	predictor = predict_data(dataset)
-	global_report.plot(dataset["data"], predictor, color="red")
-
-	weekly_dataset = parse_data(dataset_path)
-	weekly_dataset = cleanup_data(weekly_dataset)
-	weekly_dataset = enrich_data(weekly_dataset)
-	weekly_dataset = select_data_tail(weekly_dataset, 7)
-	print(weekly_dataset)
-
-	weekly_report.scatter(weekly_dataset["data"], weekly_dataset["rapporto"])
-	weekly_predictor = predict_data(weekly_dataset)
-	weekly_report.plot(weekly_dataset["data"], weekly_predictor, color="red")
+	report.plot(dataset["data"], predictor, color="red")
 
 	mp.show()
 
-#
-#   Brief:
-#       Runs report for the last given number of days.
-#   Parameters:
-#       - days: Number of days to be included in the report starting from the bottom of the dataset.
-#
-def show_custom_tail(days):
-	pandas.set_option("display.max_rows", None)
-
-	dataset = parse_data(sys.argv[1])
-	print(dataset)
-
-	dataset = cleanup_data(dataset)
-	dataset = enrich_data(dataset)
-	dataset = select_data_tail(dataset, days)
-	print(dataset)
-
-	figure, tail_report = mp.subplots(1)
-	figure.suptitle("ITALY COVID-19 LINEAR REGRESSION")
-	tail_report.set_title("Last " + str(days) + " days")
-	tail_report.autoscale()
-	tail_report.scatter(dataset["data"], dataset["rapporto"])
-
-	predictor = predict_data(dataset)
-	tail_report.plot(dataset["data"], predictor, color="red")
-
-	mp.show()
-
-#
-#   Brief:
-#       Runs report for the first given number of days.
-#   Parameters:
-#       - days: Number of days to be included in the report starting from the top of the dataset.
-#
-def show_custom_head(days):
-	pandas.set_option("display.max_rows", None)
-
-	dataset = parse_data(sys.argv[1])
-	print(dataset)
-
-	dataset = cleanup_data(dataset)
-	dataset = enrich_data(dataset)
-	dataset = select_data_head(dataset, days)
-	print(dataset)
-
-	figure, head_report = mp.subplots(1)
-	figure.suptitle("ITALY COVID-19 LINEAR REGRESSION")
-	head_report.set_title("First " + str(days) + " days")
-	head_report.autoscale()
-	head_report.scatter(dataset["data"], dataset["rapporto"])
-
-	predictor = predict_data(dataset)
-	head_report.plot(dataset["data"], predictor, color="red")
-
-	mp.show()
 
 def print_splashscreen():
 	print("")
@@ -318,7 +261,7 @@ def main():
 		print("3) Uscita")
 		option = input(">: ")
 		if int(option) == 1:
-			show_global_report(national_data_path)
+			show_national_report(national_data_path)
 		elif int(option) == 2:
 			print("Funzione attualmente non implementata")
 		elif int(option) == 3:
