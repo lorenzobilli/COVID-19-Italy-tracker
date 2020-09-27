@@ -15,6 +15,7 @@
 #   If not, see <http://www.gnu.org/licenses/>.
 #
 
+from pathlib import Path
 from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as mp
 import sys
@@ -34,7 +35,7 @@ def parse_data(feed):
 	raw_data = pandas.read_csv(feed, parse_dates=[0])
 	dataset = pandas.DataFrame(raw_data)
 	# We can already drop some NaN values here
-	dataset = dataset.drop(columns=[ "stato", "note_it", "note_en" ])
+	dataset = dataset.drop(columns=[ "stato", "note" ])
 	return dataset
 
 #
@@ -179,10 +180,10 @@ def predict_data(dataset):
 #   Brief:
 #       Runs the predefined set of reports (global and weekly) and plots them in a single image.
 #
-def show_global_report():
+def show_global_report(dataset_path):
 	pandas.set_option("display.max_rows", None)
 
-	dataset = parse_data(sys.argv[1])
+	dataset = parse_data(dataset_path)
 	print(dataset)
 
 	dataset = cleanup_data(dataset)
@@ -200,7 +201,7 @@ def show_global_report():
 	predictor = predict_data(dataset)
 	global_report.plot(dataset["data"], predictor, color="red")
 
-	weekly_dataset = parse_data(sys.argv[1])
+	weekly_dataset = parse_data(dataset_path)
 	weekly_dataset = cleanup_data(weekly_dataset)
 	weekly_dataset = enrich_data(weekly_dataset)
 	weekly_dataset = select_data_tail(weekly_dataset, 7)
@@ -301,8 +302,12 @@ def print_splashscreen():
 def main():
 
 	if len(sys.argv) < 2:
-		print("Percorso file dati CSV mancante")
+		print("Percorso repository dati COVID-19 mancante")
 		exit(-1)
+
+	national_data_path = Path(sys.argv[1] + "/dati-andamento-nazionale/dpc-covid19-ita-andamento-nazionale.csv")
+
+	print(national_data_path)
 
 	print_splashscreen()
 
@@ -313,7 +318,7 @@ def main():
 		print("3) Uscita")
 		option = input(">: ")
 		if int(option) == 1:
-			show_global_report()
+			show_global_report(national_data_path)
 		elif int(option) == 2:
 			print("Funzione attualmente non implementata")
 		elif int(option) == 3:
