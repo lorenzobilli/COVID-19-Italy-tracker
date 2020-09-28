@@ -15,6 +15,7 @@
 #   If not, see <http://www.gnu.org/licenses/>.
 #
 
+from pathlib import Path
 from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as mp
 import sys
@@ -153,7 +154,7 @@ def select_data_range(dataset, begin, end):
 		return
 	for n in range(1, begin):
 		dataset = dataset.drop(index=n)
-	for n in range(end, dataset.shape[0]):
+	for n in range(end, dataset.shape[0] + 1):
 		dataset = dataset.drop(index=n)
 	return dataset
 
@@ -175,98 +176,66 @@ def predict_data(dataset):
 	predictor = linear_regressor.predict(x)
 	return predictor
 
-#
-#   Brief:
-#       Runs the predefined set of reports (global and weekly) and plots them in a single image.
-#
-def show_global_report():
-	pandas.set_option("display.max_rows", None)
-
-	dataset = parse_data(sys.argv[1])
-	print(dataset)
-
-	dataset = cleanup_data(dataset)
-	dataset = enrich_data(dataset)
-	print(dataset)
-
-	figure, (global_report, weekly_report) = mp.subplots(2)
-	figure.suptitle("ITALY COVID-19 LINEAR REGRESSION")
-	global_report.set_title("Total")
-	weekly_report.set_title("Weekly")
-	global_report.autoscale()
-	weekly_report.autoscale()
-	global_report.scatter(dataset["data"], dataset["rapporto"])
-
-	predictor = predict_data(dataset)
-	global_report.plot(dataset["data"], predictor, color="red")
-
-	weekly_dataset = parse_data(sys.argv[1])
-	weekly_dataset = cleanup_data(weekly_dataset)
-	weekly_dataset = enrich_data(weekly_dataset)
-	weekly_dataset = select_data_tail(weekly_dataset, 7)
-	print(weekly_dataset)
-
-	weekly_report.scatter(weekly_dataset["data"], weekly_dataset["rapporto"])
-	weekly_predictor = predict_data(weekly_dataset)
-	weekly_report.plot(weekly_dataset["data"], weekly_predictor, color="red")
-
-	mp.show()
 
 #
 #   Brief:
-#       Runs report for the last given number of days.
+#       Runs a report based on the given parameters. By default it plots the global report.
 #   Parameters:
-#       - days: Number of days to be included in the report starting from the bottom of the dataset.
+#       - dataset_path: Path pointing to the CSV file used as dataset.
+#       - begin: Number of days to analyze in the report starting from the beginning.
+#       - end: Number of days to analyze in the report starting from the end.
 #
-def show_custom_tail(days):
+def show_national_report(dataset_path, begin = None, end = None):
 	pandas.set_option("display.max_rows", None)
 
-	dataset = parse_data(sys.argv[1])
-	print(dataset)
-
+	dataset = parse_data(dataset_path)
 	dataset = cleanup_data(dataset)
 	dataset = enrich_data(dataset)
-	dataset = select_data_tail(dataset, days)
 	print(dataset)
 
-	figure, tail_report = mp.subplots(1)
+	figure, report = mp.subplots(1)
 	figure.suptitle("ITALY COVID-19 LINEAR REGRESSION")
-	tail_report.set_title("Last " + str(days) + " days")
-	tail_report.autoscale()
-	tail_report.scatter(dataset["data"], dataset["rapporto"])
+	if begin != None and end != None:
+		report.set_title("From day " + str(begin) + " to day " + str(end))
+		dataset = select_data_range(dataset, int(begin), int(end))
+	elif begin != None and end == None:
+		report.set_title("First " + str(begin) + " days")
+		dataset = select_data_head(dataset, int(begin))
+	elif begin == None and end != None:
+		report.set_title("Last " + str(end) + " days")
+		dataset = select_data_tail(dataset, int(end))
+	else:
+		report.set_title("Global report")
+	report.autoscale()
+	report.scatter(dataset["data"], dataset["rapporto"])
 
 	predictor = predict_data(dataset)
-	tail_report.plot(dataset["data"], predictor, color="red")
+	report.plot(dataset["data"], predictor, color="red")
 
 	mp.show()
 
-#
-#   Brief:
-#       Runs report for the first given number of days.
-#   Parameters:
-#       - days: Number of days to be included in the report starting from the top of the dataset.
-#
-def show_custom_head(days):
-	pandas.set_option("display.max_rows", None)
 
-	dataset = parse_data(sys.argv[1])
-	print(dataset)
-
-	dataset = cleanup_data(dataset)
-	dataset = enrich_data(dataset)
-	dataset = select_data_head(dataset, days)
-	print(dataset)
-
-	figure, head_report = mp.subplots(1)
-	figure.suptitle("ITALY COVID-19 LINEAR REGRESSION")
-	head_report.set_title("First " + str(days) + " days")
-	head_report.autoscale()
-	head_report.scatter(dataset["data"], dataset["rapporto"])
-
-	predictor = predict_data(dataset)
-	head_report.plot(dataset["data"], predictor, color="red")
-
-	mp.show()
+def print_splashscreen():
+	print("")
+	print(" / ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \\")
+	print("|  /~~\\                                                               /~~\\  |")
+	print("|\\ \\   |           ____ _____     _____ ____        _  ___           |   / /|")
+	print("| \\   /|          / ___/ _ \\ \\   / /_ _|  _ \\      / |/ _ \\          |\\   / |")
+	print("|  ~~  |         | |  | | | \\ \\ / / | || | | |_____| | (_) |         |  ~~  |")
+	print("|      |         | |__| |_| |\\ V /  | || |_| |_____| |\\__, |         |      |")
+	print("|      |          \\____\\___/  \\_/  |___|____/      |_|  /_/          |      |")
+	print("|      |                                                             |      |")
+	print("|      |   ___ _        _         _                  _               |      |")
+	print("|      |  |_ _| |_ __ _| |_   _  | |_ _ __ __ _  ___| | _____ _ __   |      |")
+	print("|      |   | || __/ _` | | | | | | __| '__/ _` |/ __| |/ / _ \\ '__|  |      |")
+	print("|      |   | || || (_| | | |_| | | |_| | | (_| | (__|   <  __/ |     |      |")
+	print("|      |  |___|\\__\\__,_|_|\\__, |  \\__|_|  \\__,_|\\___|_|\\_\\___|_|     |      |")
+	print("|      |                  |___/                                      |      |")
+	print("|      |                                                             |      |")
+	print(" \\     |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|     /")
+	print("  \\   /                                                               \\   /")
+	print("   ~~~                                                                 ~~~")
+	print("")
 
 #
 #   Brief:
@@ -277,15 +246,50 @@ def show_custom_head(days):
 #       - argv[3]: days to be checked starting from the end. 0 to ignore this value.
 #
 def main():
-	if len(sys.argv) < 4:
-		print("Usage: ./main.py <csv file> <first n days | 0> <last n days | 0>")
+
+	if len(sys.argv) < 2:
+		print("Percorso repository dati COVID-19 mancante")
 		exit(-1)
-	if int(sys.argv[2]) == 0 and int(sys.argv[3]) != 0:
-		show_custom_tail(int(sys.argv[3]))
-	if int(sys.argv[2]) != 0 and int(sys.argv[3]) == 0:
-		show_custom_head(int(sys.argv[2]))
-	if int(sys.argv[2]) == 0 and int(sys.argv[3]) == 0:
-		show_global_report()
+
+	national_data_path = Path(sys.argv[1] + "/dati-andamento-nazionale/dpc-covid19-ita-andamento-nazionale.csv")
+
+	print_splashscreen()
+
+	while True:
+		print("1) Andamento nazionale")
+		print("2) Andamento regionale")
+		print("3) Uscita")
+		option = input(">: ")
+		if int(option) == 1:
+			while True:
+				print("1) Visualizza report globale")
+				print("2) Visualizza primi ... giorni")
+				print("3) Visualizza ultimi ... giorni")
+				print("4) Visualizza intervallo personalizzato")
+				print("5) Indietro")
+				national_option = input(">: ")
+				if int(national_option) == 1:
+					show_national_report(national_data_path)
+				elif int(national_option) == 2:
+					begin = input("Numero giorni: ")
+					show_national_report(national_data_path, begin = begin)
+				elif int(national_option) == 3:
+					end = input("Numero giorni: ")
+					show_national_report(national_data_path, end = end)
+				elif int(national_option) == 4:
+					begin = input("Giorno iniziale: ")
+					end = input("Giorno finale: ")
+					show_national_report(national_data_path, begin, end)
+				elif int(national_option) == 5:
+					break
+				else:
+					print("Opzione selezionata non valida")
+		elif int(option) == 2:
+			print("Funzione attualmente non implementata")
+		elif int(option) == 3:
+			break
+		else:
+			print("Opzione selezionata non valida")
 
 
 if __name__ == "__main__":
