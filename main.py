@@ -229,6 +229,7 @@ def show_national_report(dataset_path, begin = None, end = None):
 	dataset = parse_data(dataset_path)
 	dataset = cleanup_data(dataset)
 	dataset = enrich_data(dataset)
+	print("")
 	print(dataset)
 
 	figure, report = mp.subplots(1)
@@ -259,6 +260,7 @@ def show_regional_report(dataset_path, region, begin = None, end = None):
 	dataset = parse_data(dataset_path, region)
 	dataset = cleanup_data(dataset)
 	dataset = enrich_data(dataset)
+	print("")
 	print(dataset)
 
 	figure, report = mp.subplots(1)
@@ -350,6 +352,7 @@ def print_splashscreen():
 
 def choose_report_type(dataset_path, region = None):
 	while True:
+		print("")
 		print("1) Visualizza report globale")
 		print("2) Visualizza primi N giorni")
 		print("3) Visualizza ultimi N giorni")
@@ -406,6 +409,7 @@ def main():
 	print_splashscreen()
 
 	while True:
+		print("")
 		print("1) Andamento nazionale")
 		print("2) Andamento regionale")
 		print("3) Uscita")
@@ -414,6 +418,7 @@ def main():
 			choose_report_type(national_data_path)
 		elif int(option) == 2:
 			while True:
+				print("")
 				print("1) Abruzzo")
 				print("2) Basilicata")
 				print("3) Calabria")
