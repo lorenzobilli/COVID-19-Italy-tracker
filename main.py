@@ -16,12 +16,38 @@
 #
 
 from pathlib import Path
+from enum import IntEnum
 from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as mp
 import sys
 import datetime
 import pandas
 import numpy
+
+class Region(IntEnum):
+	ABRUZZO = 13
+	BASILICATA = 17
+	CALABRIA = 18
+	CAMPANIA = 15
+	EMILIA_ROMAGNA = 8
+	FRIULI_VENEZIA_GIULIA = 6
+	LAZIO = 12
+	LIGURIA = 7
+	LOMBARDIA = 3
+	MARCHE = 11
+	MOLISE = 14
+	PA_BOLZANO = 21
+	PA_TRENTO = 22
+	PIEMONTE = 1
+	PUGLIA = 16
+	SARDEGNA = 20
+	SICILIA = 19
+	TOSCANA = 9
+	UMBRIA = 10
+	VALLE_D_AOSTA = 2
+	VENETO = 5
+
+
 
 #
 #   Brief:
@@ -31,11 +57,15 @@ import numpy
 #   Returns:
 #       A dataset as a pandas DataFrame object.
 #
-def parse_data(feed):
+def parse_data(feed, region = None):
 	raw_data = pandas.read_csv(feed, parse_dates=[0])
 	dataset = pandas.DataFrame(raw_data)
 	# We can already drop some NaN values here
 	dataset = dataset.drop(columns=[ "stato", "note" ])
+	if region != None:
+		dataset.drop(dataset[dataset["codice_regione"] != Region(region)].index, inplace = True)
+		dataset.reset_index(drop = True, inplace = True)
+		dataset = dataset.drop(columns=[ "codice_regione", "denominazione_regione", "lat", "long" ])
 	return dataset
 
 #
@@ -57,6 +87,8 @@ def cleanup_data(dataset):
 		"nuovi_positivi",
 		"dimessi_guariti",
 		"deceduti",
+		"casi_da_sospetto_diagnostico",
+		"casi_da_screening",
 		"totale_casi"
 	])
 	return dataset
@@ -94,10 +126,16 @@ def enrich_data(dataset):
 	validated = [0]
 	for n in range(1, dataset.shape[0]):
 		if numpy.isnan(dataset.at[n, "nuovi_casi_testati"]):
-			ratio.append(dataset.at[n, "variazione_totale_positivi"] / dataset.at[n, "nuovi_tamponi"] * 100)
+			if dataset.at[n, "nuovi_tamponi"] != 0:
+				ratio.append(dataset.at[n, "variazione_totale_positivi"] / dataset.at[n, "nuovi_tamponi"] * 100)
+			else:
+				ratio.append(0)
 			validated.append(False)
 		else:
-			ratio.append(dataset.at[n, "variazione_totale_positivi"] / dataset.at[n, "nuovi_casi_testati"] * 100)
+			if dataset.at[n, "nuovi_casi_testati"] != 0:
+				ratio.append(dataset.at[n, "variazione_totale_positivi"] / dataset.at[n, "nuovi_casi_testati"] * 100)
+			else :
+				ratio.append(0)
 			validated.append(True)
 	dataset["rapporto"] = ratio
 	dataset["validati"] = validated
@@ -191,10 +229,11 @@ def show_national_report(dataset_path, begin = None, end = None):
 	dataset = parse_data(dataset_path)
 	dataset = cleanup_data(dataset)
 	dataset = enrich_data(dataset)
+	print("")
 	print(dataset)
 
 	figure, report = mp.subplots(1)
-	figure.suptitle("ITALY COVID-19 LINEAR REGRESSION")
+	figure.suptitle("COVID-19 LINEAR REGRESSION: ITALIA")
 	if begin != None and end != None:
 		report.set_title("From day " + str(begin) + " to day " + str(end))
 		dataset = select_data_range(dataset, int(begin), int(end))
@@ -213,6 +252,79 @@ def show_national_report(dataset_path, begin = None, end = None):
 	report.plot(dataset["data"], predictor, color="red")
 
 	mp.show()
+
+
+def show_regional_report(dataset_path, region, begin = None, end = None):
+	pandas.set_option("display.max_rows", None)
+
+	dataset = parse_data(dataset_path, region)
+	dataset = cleanup_data(dataset)
+	dataset = enrich_data(dataset)
+	print("")
+	print(dataset)
+
+	figure, report = mp.subplots(1)
+	title = "COVID-19 LINEAR REGRESSION: "
+	if region == Region.ABRUZZO:
+		title += "REGIONE ABRUZZO"
+	elif region == Region.BASILICATA:
+		title += "REGIONE BASILICATA"
+	elif region == Region.CALABRIA:
+		title += "REGIONE CALABRIA"
+	elif region == Region.CAMPANIA:
+		title += "REGIONE CAMPANIA"
+	elif region == Region.EMILIA_ROMAGNA:
+		title += "REGIONE EMILIA-ROMAGNA"
+	elif region == Region.FRIULI_VENEZIA_GIULIA:
+		title += "REGIONE FRIULI-VENEZIA GIULIA"
+	elif region == Region.LAZIO:
+		title += "REGIONE LAZIO"
+	elif region == Region.LIGURIA:
+		title += "REGIONE LIGURIA"
+	elif region == Region.LOMBARDIA:
+		title += "REGIONE LOMBARDIA"
+	elif region == Region.MARCHE:
+		title += "REGIONE MARCHE"
+	elif region == Region.MOLISE:
+		title += "REGIONE MOLISE"
+	elif region == Region.PA_BOLZANO:
+		title += "P.A. BOLZANO"
+	elif region == Region.PA_TRENTO:
+		title += "P.A. TRENTO"
+	elif region == Region.PIEMONTE:
+		title += "REGIONE PIEMENTE"
+	elif region == Region.PUGLIA:
+		title += "REGIONE PUGLIA"
+	elif region == Region.SARDEGNA:
+		title += "REGIONE SARDEGNA"
+	elif region == Region.SICILIA:
+		title += "REGIONE SICILIA"
+	elif region == Region.TOSCANA:
+		title += "REGIONE TOSCANA"
+	elif region == Region.UMBRIA:
+		title += "REGIONE VALLE D'AOSTA"
+	elif region == Region.VENETO:
+		title += "REGIONE VENETO"
+	figure.suptitle(title)
+	if begin != None and end != None:
+		report.set_title("From day " + str(begin) + " to day " + str(end))
+		dataset = select_data_range(dataset, int(begin), int(end))
+	elif begin != None and end == None:
+		report.set_title("First " + str(begin) + " days")
+		dataset = select_data_head(dataset, int(begin))
+	elif begin == None and end != None:
+		report.set_title("Last " + str(end) + " days")
+		dataset = select_data_tail(dataset, int(end))
+	else:
+		report.set_title("Global report")
+	report.autoscale()
+	report.scatter(dataset["data"], dataset["rapporto"])
+
+	predictor = predict_data(dataset)
+	report.plot(dataset["data"], predictor, color="red")
+
+	mp.show()
+
 
 
 def print_splashscreen():
@@ -237,6 +349,46 @@ def print_splashscreen():
 	print("   ~~~                                                                 ~~~")
 	print("")
 
+
+def choose_report_type(dataset_path, region = None):
+	while True:
+		print("")
+		print("1) Visualizza report globale")
+		print("2) Visualizza primi N giorni")
+		print("3) Visualizza ultimi N giorni")
+		print("4) Visualizza intervallo personalizzato")
+		print("5) Indietro")
+		option = input(">: ")
+		if int(option) == 1:
+			if region == None:
+				show_national_report(dataset_path)
+			else:
+				show_regional_report(dataset_path, region)
+		elif int(option) == 2:
+			begin = input("Numero giorni: ")
+			if region == None:
+				show_national_report(dataset_path, begin = begin)
+			else:
+				show_regional_report(dataset_path, region, begin = begin)
+		elif int(option) == 3:
+			end = input("Numero giorni: ")
+			if region == None:
+				show_national_report(dataset_path, end = end)
+			else:
+				show_regional_report(dataset_path, region, end = end)
+		elif int(option) == 4:
+			begin = input("Giorno iniziale: ")
+			end = input("Giorno finale: ")
+			if region == None:
+				show_national_report(dataset_path, begin, end)
+			else:
+				show_regional_report(dataset_path, region, begin, end)
+		elif int(option) == 5:
+			break
+		else:
+			print("Opzione selezionata non valida")
+
+
 #
 #   Brief:
 #       Program entrypoint
@@ -252,40 +404,87 @@ def main():
 		exit(-1)
 
 	national_data_path = Path(sys.argv[1] + "/dati-andamento-nazionale/dpc-covid19-ita-andamento-nazionale.csv")
+	regional_data_path = Path(sys.argv[1] + "/dati-regioni/dpc-covid19-ita-regioni.csv")
 
 	print_splashscreen()
 
 	while True:
+		print("")
 		print("1) Andamento nazionale")
 		print("2) Andamento regionale")
 		print("3) Uscita")
 		option = input(">: ")
 		if int(option) == 1:
+			choose_report_type(national_data_path)
+		elif int(option) == 2:
 			while True:
-				print("1) Visualizza report globale")
-				print("2) Visualizza primi ... giorni")
-				print("3) Visualizza ultimi ... giorni")
-				print("4) Visualizza intervallo personalizzato")
-				print("5) Indietro")
-				national_option = input(">: ")
-				if int(national_option) == 1:
-					show_national_report(national_data_path)
-				elif int(national_option) == 2:
-					begin = input("Numero giorni: ")
-					show_national_report(national_data_path, begin = begin)
-				elif int(national_option) == 3:
-					end = input("Numero giorni: ")
-					show_national_report(national_data_path, end = end)
-				elif int(national_option) == 4:
-					begin = input("Giorno iniziale: ")
-					end = input("Giorno finale: ")
-					show_national_report(national_data_path, begin, end)
-				elif int(national_option) == 5:
+				print("")
+				print("1) Abruzzo")
+				print("2) Basilicata")
+				print("3) Calabria")
+				print("4) Emilia-Romagna")
+				print("5) Friuli Venezia Giulia")
+				print("6) Lazio")
+				print("7) Liguria")
+				print("8) Lombardia")
+				print("9) Marche")
+				print("10) Molise")
+				print("11) P.A. Bolzano")
+				print("12) P.A. Trento")
+				print("13) Piemonte")
+				print("14) Puglia")
+				print("15) Sardegna")
+				print("16) Sicilia")
+				print("17) Toscana")
+				print("18) Umbria")
+				print("19) Valle d'Aosta")
+				print("20) Veneto")
+				print("21) Indietro")
+				suboption = input(">: ")
+				if int(suboption) == 1:
+					choose_report_type(regional_data_path, Region.ABRUZZO)
+				elif int(suboption) == 2:
+					choose_report_type(regional_data_path, Region.BASILICATA)
+				elif int(suboption) == 3:
+					choose_report_type(regional_data_path, Region.CALABRIA)
+				elif int(suboption) == 4:
+					choose_report_type(regional_data_path, Region.EMILIA_ROMAGNA)
+				elif int(suboption) == 5:
+					choose_report_type(regional_data_path, Region.FRIULI_VENEZIA_GIULIA)
+				elif int(suboption) == 6:
+					choose_report_type(regional_data_path, Region.LAZIO)
+				elif int(suboption) == 7:
+					choose_report_type(regional_data_path, Region.LIGURIA)
+				elif int(suboption) == 8:
+					choose_report_type(regional_data_path, Region.LOMBARDIA)
+				elif int(suboption) == 9:
+					choose_report_type(regional_data_path, Region.MARCHE)
+				elif int(suboption) == 10:
+					choose_report_type(regional_data_path, Region.MOLISE)
+				elif int(suboption) == 11:
+					choose_report_type(regional_data_path, Region.PA_BOLZANO)
+				elif int(suboption) == 12:
+					choose_report_type(regional_data_path, Region.PA_TRENTO)
+				elif int(suboption) == 13:
+					choose_report_type(regional_data_path, Region.PIEMONTE)
+				elif int(suboption) == 14:
+					choose_report_type(regional_data_path, Region.PUGLIA)
+				elif int(suboption) == 15:
+					choose_report_type(regional_data_path, Region.SARDEGNA)
+				elif int(suboption) == 16:
+					choose_report_type(regional_data_path, Region.SICILIA)
+				elif int(suboption) == 17:
+					choose_report_type(regional_data_path, Region.TOSCANA)
+				elif int(suboption) == 18:
+					choose_report_type(regional_data_path, Region.UMBRIA)
+				elif int(suboption) == 19:
+					choose_report_type(regional_data_path, Region.VALLE_D_AOSTA)
+				elif int(suboption) == 20:
+					choose_report_type(regional_data_path, Region.VENETO)
+				elif int(suboption) == 21:
 					break
 				else:
 					print("Opzione selezionata non valida")
-		elif int(option) == 2:
-			print("Funzione attualmente non implementata")
 		elif int(option) == 3:
 			break
 		else:
