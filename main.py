@@ -154,7 +154,7 @@ def select_data_range(dataset, begin, end):
 		return
 	for n in range(1, begin):
 		dataset = dataset.drop(index=n)
-	for n in range(end, dataset.shape[0]):
+	for n in range(end, dataset.shape[0] + 1):
 		dataset = dataset.drop(index=n)
 	return dataset
 
@@ -197,10 +197,13 @@ def show_national_report(dataset_path, begin = None, end = None):
 	figure.suptitle("ITALY COVID-19 LINEAR REGRESSION")
 	if begin != None and end != None:
 		report.set_title("From day " + str(begin) + " to day " + str(end))
+		dataset = select_data_range(dataset, int(begin), int(end))
 	elif begin != None and end == None:
 		report.set_title("First " + str(begin) + " days")
+		dataset = select_data_head(dataset, int(begin))
 	elif begin == None and end != None:
 		report.set_title("Last " + str(end) + " days")
+		dataset = select_data_tail(dataset, int(end))
 	else:
 		report.set_title("Global report")
 	report.autoscale()
@@ -249,8 +252,6 @@ def main():
 		exit(-1)
 
 	national_data_path = Path(sys.argv[1] + "/dati-andamento-nazionale/dpc-covid19-ita-andamento-nazionale.csv")
-
-	print(national_data_path)
 
 	print_splashscreen()
 
