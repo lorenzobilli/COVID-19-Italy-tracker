@@ -126,10 +126,16 @@ def enrich_data(dataset):
 	validated = [0]
 	for n in range(1, dataset.shape[0]):
 		if numpy.isnan(dataset.at[n, "nuovi_casi_testati"]):
-			ratio.append(dataset.at[n, "variazione_totale_positivi"] / dataset.at[n, "nuovi_tamponi"] * 100)
+			if dataset.at[n, "nuovi_tamponi"] != 0:
+				ratio.append(dataset.at[n, "variazione_totale_positivi"] / dataset.at[n, "nuovi_tamponi"] * 100)
+			else:
+				ratio.append(0)
 			validated.append(False)
 		else:
-			ratio.append(dataset.at[n, "variazione_totale_positivi"] / dataset.at[n, "nuovi_casi_testati"] * 100)
+			if dataset.at[n, "nuovi_casi_testati"] != 0:
+				ratio.append(dataset.at[n, "variazione_totale_positivi"] / dataset.at[n, "nuovi_casi_testati"] * 100)
+			else :
+				ratio.append(0)
 			validated.append(True)
 	dataset["rapporto"] = ratio
 	dataset["validati"] = validated
@@ -226,7 +232,7 @@ def show_national_report(dataset_path, begin = None, end = None):
 	print(dataset)
 
 	figure, report = mp.subplots(1)
-	figure.suptitle("ITALY COVID-19 LINEAR REGRESSION")
+	figure.suptitle("COVID-19 LINEAR REGRESSION: ITALIA")
 	if begin != None and end != None:
 		report.set_title("From day " + str(begin) + " to day " + str(end))
 		dataset = select_data_range(dataset, int(begin), int(end))
@@ -254,6 +260,69 @@ def show_regional_report(dataset_path, region, begin = None, end = None):
 	dataset = cleanup_data(dataset)
 	dataset = enrich_data(dataset)
 	print(dataset)
+
+	figure, report = mp.subplots(1)
+	title = "COVID-19 LINEAR REGRESSION: "
+	if region == Region.ABRUZZO:
+		title += "REGIONE ABRUZZO"
+	elif region == Region.BASILICATA:
+		title += "REGIONE BASILICATA"
+	elif region == Region.CALABRIA:
+		title += "REGIONE CALABRIA"
+	elif region == Region.CAMPANIA:
+		title += "REGIONE CAMPANIA"
+	elif region == Region.EMILIA_ROMAGNA:
+		title += "REGIONE EMILIA-ROMAGNA"
+	elif region == Region.FRIULI_VENEZIA_GIULIA:
+		title += "REGIONE FRIULI-VENEZIA GIULIA"
+	elif region == Region.LAZIO:
+		title += "REGIONE LAZIO"
+	elif region == Region.LIGURIA:
+		title += "REGIONE LIGURIA"
+	elif region == Region.LOMBARDIA:
+		title += "REGIONE LOMBARDIA"
+	elif region == Region.MARCHE:
+		title += "REGIONE MARCHE"
+	elif region == Region.MOLISE:
+		title += "REGIONE MOLISE"
+	elif region == Region.PA_BOLZANO:
+		title += "P.A. BOLZANO"
+	elif region == Region.PA_TRENTO:
+		title += "P.A. TRENTO"
+	elif region == Region.PIEMONTE:
+		title += "REGIONE PIEMENTE"
+	elif region == Region.PUGLIA:
+		title += "REGIONE PUGLIA"
+	elif region == Region.SARDEGNA:
+		title += "REGIONE SARDEGNA"
+	elif region == Region.SICILIA:
+		title += "REGIONE SICILIA"
+	elif region == Region.TOSCANA:
+		title += "REGIONE TOSCANA"
+	elif region == Region.UMBRIA:
+		title += "REGIONE VALLE D'AOSTA"
+	elif region == Region.VENETO:
+		title += "REGIONE VENETO"
+	figure.suptitle(title)
+	if begin != None and end != None:
+		report.set_title("From day " + str(begin) + " to day " + str(end))
+		dataset = select_data_range(dataset, int(begin), int(end))
+	elif begin != None and end == None:
+		report.set_title("First " + str(begin) + " days")
+		dataset = select_data_head(dataset, int(begin))
+	elif begin == None and end != None:
+		report.set_title("Last " + str(end) + " days")
+		dataset = select_data_tail(dataset, int(end))
+	else:
+		report.set_title("Global report")
+	report.autoscale()
+	report.scatter(dataset["data"], dataset["rapporto"])
+
+	predictor = predict_data(dataset)
+	report.plot(dataset["data"], predictor, color="red")
+
+	mp.show()
+
 
 
 def print_splashscreen():
