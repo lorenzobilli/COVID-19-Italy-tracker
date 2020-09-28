@@ -16,7 +16,7 @@
 #
 
 from pathlib import Path
-from enum import Enum
+from enum import IntEnum
 from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as mp
 import sys
@@ -24,7 +24,7 @@ import datetime
 import pandas
 import numpy
 
-class Region(Enum):
+class Region(IntEnum):
 	ABRUZZO = 13
 	BASILICATA = 17
 	CALABRIA = 18
@@ -57,11 +57,15 @@ class Region(Enum):
 #   Returns:
 #       A dataset as a pandas DataFrame object.
 #
-def parse_data(feed):
+def parse_data(feed, region = None):
 	raw_data = pandas.read_csv(feed, parse_dates=[0])
 	dataset = pandas.DataFrame(raw_data)
 	# We can already drop some NaN values here
 	dataset = dataset.drop(columns=[ "stato", "note" ])
+	if region != None:
+		dataset.drop(dataset[dataset["codice_regione"] != Region(region)].index, inplace = True)
+		dataset.reset_index(drop = True, inplace = True)
+		dataset = dataset.drop(columns=[ "codice_regione", "denominazione_regione", "lat", "long" ])
 	return dataset
 
 #
@@ -83,6 +87,8 @@ def cleanup_data(dataset):
 		"nuovi_positivi",
 		"dimessi_guariti",
 		"deceduti",
+		"casi_da_sospetto_diagnostico",
+		"casi_da_screening",
 		"totale_casi"
 	])
 	return dataset
@@ -242,7 +248,12 @@ def show_national_report(dataset_path, begin = None, end = None):
 
 
 def show_regional_report(dataset_path, region, begin = None, end = None):
-	return
+	pandas.set_option("display.max_rows", None)
+
+	dataset = parse_data(dataset_path, region)
+	dataset = cleanup_data(dataset)
+	dataset = enrich_data(dataset)
+	print(dataset)
 
 
 def print_splashscreen():
@@ -279,19 +290,27 @@ def choose_report_type(dataset_path, region = None):
 		if int(option) == 1:
 			if region == None:
 				show_national_report(dataset_path)
+			else:
+				show_regional_report(dataset_path, region)
 		elif int(option) == 2:
 			begin = input("Numero giorni: ")
 			if region == None:
 				show_national_report(dataset_path, begin = begin)
+			else:
+				show_regional_report(dataset_path, region, begin = begin)
 		elif int(option) == 3:
 			end = input("Numero giorni: ")
 			if region == None:
 				show_national_report(dataset_path, end = end)
+			else:
+				show_regional_report(dataset_path, region, end = end)
 		elif int(option) == 4:
 			begin = input("Giorno iniziale: ")
 			end = input("Giorno finale: ")
 			if region == None:
 				show_national_report(dataset_path, begin, end)
+			else:
+				show_regional_report(dataset_path, region, begin, end)
 		elif int(option) == 5:
 			break
 		else:
