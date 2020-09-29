@@ -15,15 +15,21 @@
 #   If not, see <http://www.gnu.org/licenses/>.
 #
 
-from pathlib import Path
-from enum import IntEnum
-from sklearn.linear_model import LinearRegression
-import matplotlib.pyplot as mp
-import sys
 import datetime
-import pandas
-import numpy
+import sys
+from enum import IntEnum
+from pathlib import Path
 
+import matplotlib.pyplot as mp
+import numpy
+import pandas
+from sklearn.linear_model import LinearRegression
+
+
+#
+#   Brief:
+#       Enum used for regions. Integer values correspond to the internal regional ID used in the datasets.
+#
 class Region(IntEnum):
 	ABRUZZO = 13
 	BASILICATA = 17
@@ -48,25 +54,26 @@ class Region(IntEnum):
 	VENETO = 5
 
 
-
 #
 #   Brief:
 #       Parses raw data retrieved from a CSV file and returns a dataset as a pandas DataFrame object.
 #   Parameters:
 #       - feed: Raw data to be parsed (must contain/point to a CSV file).
+#       - region: Region to be parsed (in casa we're parsing a regional dataset).
 #   Returns:
 #       A dataset as a pandas DataFrame object.
 #
-def parse_data(feed, region = None):
+def parse_data(feed, region=None):
 	raw_data = pandas.read_csv(feed, parse_dates=[0])
 	dataset = pandas.DataFrame(raw_data)
 	# We can already drop some NaN values here
-	dataset = dataset.drop(columns=[ "stato", "note" ])
-	if region != None:
-		dataset.drop(dataset[dataset["codice_regione"] != Region(region)].index, inplace = True)
-		dataset.reset_index(drop = True, inplace = True)
-		dataset = dataset.drop(columns=[ "codice_regione", "denominazione_regione", "lat", "long" ])
+	dataset = dataset.drop(columns=["stato", "note"])
+	if region is not None:
+		dataset.drop(dataset[dataset["codice_regione"] != Region(region)].index, inplace=True)
+		dataset.reset_index(drop=True, inplace=True)
+		dataset = dataset.drop(columns=["codice_regione", "denominazione_regione", "lat", "long"])
 	return dataset
+
 
 #
 #   Brief:
@@ -92,6 +99,7 @@ def cleanup_data(dataset):
 		"totale_casi"
 	])
 	return dataset
+
 
 #
 #   Brief:
@@ -126,21 +134,24 @@ def enrich_data(dataset):
 	validated = [0]
 	for n in range(1, dataset.shape[0]):
 		if numpy.isnan(dataset.at[n, "nuovi_casi_testati"]):
+			# Makes sure we're not dividing by 0 in case no tests are registered.
 			if dataset.at[n, "nuovi_tamponi"] != 0:
 				ratio.append(dataset.at[n, "variazione_totale_positivi"] / dataset.at[n, "nuovi_tamponi"] * 100)
 			else:
 				ratio.append(0)
 			validated.append(False)
 		else:
+			# Makes sure we're not dividing by 0 in case no tests are registered.
 			if dataset.at[n, "nuovi_casi_testati"] != 0:
 				ratio.append(dataset.at[n, "variazione_totale_positivi"] / dataset.at[n, "nuovi_casi_testati"] * 100)
-			else :
+			else:
 				ratio.append(0)
 			validated.append(True)
 	dataset["rapporto"] = ratio
 	dataset["validati"] = validated
 	dataset = dataset.drop(index=0)
 	return dataset
+
 
 #
 #   Brief:
@@ -158,6 +169,7 @@ def select_data_head(dataset, quantity):
 		dataset = dataset.drop(index=n)
 	return dataset
 
+
 #
 #   Brief:
 #       Trims a given dataset by keeping only a certain amount of data starting from the bottom.
@@ -173,6 +185,7 @@ def select_data_tail(dataset, quantity):
 	for n in range(1, dataset.shape[0] - (quantity - 1)):
 		dataset = dataset.drop(index=n)
 	return dataset
+
 
 #
 #   Brief:
@@ -196,6 +209,7 @@ def select_data_range(dataset, begin, end):
 		dataset = dataset.drop(index=n)
 	return dataset
 
+
 #
 #   Brief:
 #       Predicts trend with linear regression on the given dataset values.
@@ -217,13 +231,13 @@ def predict_data(dataset):
 
 #
 #   Brief:
-#       Runs a report based on the given parameters. By default it plots the global report.
+#       Runs a report based on the given parameters. By default it plots the global national report.
 #   Parameters:
 #       - dataset_path: Path pointing to the CSV file used as dataset.
 #       - begin: Number of days to analyze in the report starting from the beginning.
 #       - end: Number of days to analyze in the report starting from the end.
 #
-def show_national_report(dataset_path, begin = None, end = None):
+def show_national_report(dataset_path, begin=None, end=None):
 	pandas.set_option("display.max_rows", None)
 
 	dataset = parse_data(dataset_path)
@@ -234,13 +248,13 @@ def show_national_report(dataset_path, begin = None, end = None):
 
 	figure, report = mp.subplots(1)
 	figure.suptitle("COVID-19 LINEAR REGRESSION: ITALIA")
-	if begin != None and end != None:
+	if begin is not None and end is not None:
 		report.set_title("From day " + str(begin) + " to day " + str(end))
 		dataset = select_data_range(dataset, int(begin), int(end))
-	elif begin != None and end == None:
+	elif begin is not None and end is None:
 		report.set_title("First " + str(begin) + " days")
 		dataset = select_data_head(dataset, int(begin))
-	elif begin == None and end != None:
+	elif begin is None and end is not None:
 		report.set_title("Last " + str(end) + " days")
 		dataset = select_data_tail(dataset, int(end))
 	else:
@@ -254,7 +268,16 @@ def show_national_report(dataset_path, begin = None, end = None):
 	mp.show()
 
 
-def show_regional_report(dataset_path, region, begin = None, end = None):
+#
+#   Brief:
+#       Runs a report based on the given parameters. By default it plots the global regional report.
+#   Parameters:
+#       - dataset_path: Path pointing to the CSV file used as dataset.
+#       - region: Region which will be analyzed to generate the report.
+#       - begin: Number of days to analyze in the report starting from the beginning.
+#       - end: Number of days to analyze in the report starting from the end.
+#
+def show_regional_report(dataset_path, region, begin=None, end=None):
 	pandas.set_option("display.max_rows", None)
 
 	dataset = parse_data(dataset_path, region)
@@ -306,13 +329,13 @@ def show_regional_report(dataset_path, region, begin = None, end = None):
 	elif region == Region.VENETO:
 		title += "REGIONE VENETO"
 	figure.suptitle(title)
-	if begin != None and end != None:
+	if begin is not None and end is not None:
 		report.set_title("From day " + str(begin) + " to day " + str(end))
 		dataset = select_data_range(dataset, int(begin), int(end))
-	elif begin != None and end == None:
+	elif begin is not None and end is None:
 		report.set_title("First " + str(begin) + " days")
 		dataset = select_data_head(dataset, int(begin))
-	elif begin == None and end != None:
+	elif begin is None and end is not None:
 		report.set_title("Last " + str(end) + " days")
 		dataset = select_data_tail(dataset, int(end))
 	else:
@@ -326,7 +349,57 @@ def show_regional_report(dataset_path, region, begin = None, end = None):
 	mp.show()
 
 
+#
+#   Brief:
+#       Chooses the type of report (time-wise) that will be produced.
+#   Parameters:
+#       - dataset_path: Path pointing to the CSV file used to generate the report.
+#       - region: If provided, specifies the CSV region file from which data will be picked up. If no parameter is
+#           specified, data will be picked from the national CSV file.
+#
+def choose_report_type(dataset_path, region=None):
+	while True:
+		print("")
+		print("1) Visualizza report globale")
+		print("2) Visualizza primi N giorni")
+		print("3) Visualizza ultimi N giorni")
+		print("4) Visualizza intervallo personalizzato")
+		print("5) Indietro")
+		option = input(">: ")
+		if int(option) == 1:
+			if region is None:
+				show_national_report(dataset_path)
+			else:
+				show_regional_report(dataset_path, region)
+		elif int(option) == 2:
+			begin = input("Numero giorni: ")
+			if region is None:
+				show_national_report(dataset_path, begin=begin)
+			else:
+				show_regional_report(dataset_path, region, begin=begin)
+		elif int(option) == 3:
+			end = input("Numero giorni: ")
+			if region is None:
+				show_national_report(dataset_path, end=end)
+			else:
+				show_regional_report(dataset_path, region, end=end)
+		elif int(option) == 4:
+			begin = input("Giorno iniziale: ")
+			end = input("Giorno finale: ")
+			if region is None:
+				show_national_report(dataset_path, begin, end)
+			else:
+				show_regional_report(dataset_path, region, begin, end)
+		elif int(option) == 5:
+			break
+		else:
+			print("Opzione selezionata non valida")
 
+
+#
+#   Brief:
+#       Prints a formatted welcome splash screen.
+#
 def print_splashscreen():
 	print("")
 	print(" / ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \\")
@@ -350,55 +423,13 @@ def print_splashscreen():
 	print("")
 
 
-def choose_report_type(dataset_path, region = None):
-	while True:
-		print("")
-		print("1) Visualizza report globale")
-		print("2) Visualizza primi N giorni")
-		print("3) Visualizza ultimi N giorni")
-		print("4) Visualizza intervallo personalizzato")
-		print("5) Indietro")
-		option = input(">: ")
-		if int(option) == 1:
-			if region == None:
-				show_national_report(dataset_path)
-			else:
-				show_regional_report(dataset_path, region)
-		elif int(option) == 2:
-			begin = input("Numero giorni: ")
-			if region == None:
-				show_national_report(dataset_path, begin = begin)
-			else:
-				show_regional_report(dataset_path, region, begin = begin)
-		elif int(option) == 3:
-			end = input("Numero giorni: ")
-			if region == None:
-				show_national_report(dataset_path, end = end)
-			else:
-				show_regional_report(dataset_path, region, end = end)
-		elif int(option) == 4:
-			begin = input("Giorno iniziale: ")
-			end = input("Giorno finale: ")
-			if region == None:
-				show_national_report(dataset_path, begin, end)
-			else:
-				show_regional_report(dataset_path, region, begin, end)
-		elif int(option) == 5:
-			break
-		else:
-			print("Opzione selezionata non valida")
-
-
 #
 #   Brief:
-#       Program entrypoint
+#       Program entrypoint.
 #   Parameters:
-#       - argv[1]: points the CSV file to be analyzed.
-#       - argv[2]: days to be checked starting from the beginning. 0 to ignore this value.
-#       - argv[3]: days to be checked starting from the end. 0 to ignore this value.
+#       - argv[1]: Path (either absolute or relative) to the data repository containing the CSV files.
 #
 def main():
-
 	if len(sys.argv) < 2:
 		print("Percorso repository dati COVID-19 mancante")
 		exit(-1)
