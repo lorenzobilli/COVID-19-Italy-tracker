@@ -229,8 +229,6 @@ def show_national_report(dataset_path, begin = None, end = None):
 	dataset = parse_data(dataset_path)
 	dataset = cleanup_data(dataset)
 	dataset = enrich_data(dataset)
-	print("")
-	print(dataset)
 
 	figure, report = mp.subplots(1)
 	figure.suptitle("COVID-19 LINEAR REGRESSION: ITALIA")
@@ -251,6 +249,8 @@ def show_national_report(dataset_path, begin = None, end = None):
 	predictor = predict_data(dataset)
 	report.plot(dataset["data"], predictor, color="red")
 
+	print("")
+	print(dataset)
 	mp.show()
 
 
@@ -260,8 +260,6 @@ def show_regional_report(dataset_path, region, begin = None, end = None):
 	dataset = parse_data(dataset_path, region)
 	dataset = cleanup_data(dataset)
 	dataset = enrich_data(dataset)
-	print("")
-	print(dataset)
 
 	figure, report = mp.subplots(1)
 	title = "COVID-19 LINEAR REGRESSION: "
@@ -323,6 +321,8 @@ def show_regional_report(dataset_path, region, begin = None, end = None):
 	predictor = predict_data(dataset)
 	report.plot(dataset["data"], predictor, color="red")
 
+	print("")
+	print(dataset)
 	mp.show()
 
 
