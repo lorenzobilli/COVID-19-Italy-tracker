@@ -59,7 +59,6 @@ class Region(IntEnum):
 #       Parses raw data retrieved from a CSV file and returns a dataset as a pandas DataFrame object.
 #   Parameters:
 #       - feed: Raw data to be parsed (must contain/point to a CSV file).
-#       - region: Region to be parsed (in casa we're parsing a regional dataset).
 #   Returns:
 #       A dataset as a pandas DataFrame object.
 #
@@ -74,6 +73,7 @@ def parse_data(feed):
 #       Cleans up a given dataset by removing all columns that are not used during data analysis.
 #   Parameters:
 #       - dataset: Dataset from which the data shall be removed.
+#       - region: If provided, marks current dataset as a regional one, thus removing additional unneeded columns.
 #   Returns:
 #       A new dataset without the unnecessary columns.
 #
@@ -103,7 +103,8 @@ def cleanup_data(dataset, region=None):
 
 #
 #   Brief:
-#       Enriches data with new columns with data used to analyze trends.
+#       Enriches data with new columns with data used to analyze trends, and renames existing ones to a known,
+#       standardized string format.
 #   Detailed description:
 #       We can't draw a trend line without knowing how large the sample size is. By default, only new COVID-19 positive
 #       patients are indicated in official data. In order to achieve any vaguely scientific results we NEED to know the
