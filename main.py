@@ -117,35 +117,25 @@ def cleanup_data(dataset, region=None):
 #       A new dataset with all the new data required.
 #
 def enrich_data(dataset):
-	new_tests = [0]
-	new_cases = [0]
+	tests = [0]
 	for n in range(1, dataset.shape[0]):
-		new_tests.append(dataset.at[n, "tamponi"] - dataset.at[n - 1, "tamponi"])
 		if numpy.isnan(dataset.at[n - 1, "casi_testati"]):
-			new_cases.append(numpy.nan)
+			tests.append(dataset.at[n, "tamponi"] - dataset.at[n - 1, "tamponi"])
 		else:
-			new_cases.append(dataset.at[n, "casi_testati"] - dataset.at[n - 1, "casi_testati"])
-	dataset = dataset.drop(columns="tamponi")
-	dataset = dataset.drop(columns="casi_testati")
-	dataset["nuovi_tamponi"] = new_tests
-	dataset["nuovi_casi_testati"] = new_cases
+			tests.append(dataset.at[n, "casi_testati"] - dataset.at[n - 1, "casi_testati"])
+	dataset.drop(columns="tamponi", inplace=True)
+	dataset.drop(columns="casi_testati", inplace=True)
+	dataset["tamponi"] = tests
 
 	ratio = [0]
 	for n in range(1, dataset.shape[0]):
-		if numpy.isnan(dataset.at[n, "nuovi_casi_testati"]):
-			# Makes sure we're not dividing by 0 in case no tests are registered.
-			if dataset.at[n, "nuovi_tamponi"] != 0:
-				ratio.append(dataset.at[n, "variazione_totale_positivi"] / dataset.at[n, "nuovi_tamponi"] * 100)
-			else:
-				ratio.append(0)
+		# Makes sure we're not dividing by 0 in case no tests are registered.
+		if dataset.at[n, "tamponi"] != 0:
+			ratio.append(dataset.at[n, "variazione_totale_positivi"] / dataset.at[n, "tamponi"] * 100)
 		else:
-			# Makes sure we're not dividing by 0 in case no tests are registered.
-			if dataset.at[n, "nuovi_casi_testati"] != 0:
-				ratio.append(dataset.at[n, "variazione_totale_positivi"] / dataset.at[n, "nuovi_casi_testati"] * 100)
-			else:
-				ratio.append(0)
+			ratio.append(0)
 	dataset["rapporto"] = ratio
-	dataset = dataset.drop(index=0)
+	dataset.drop(index=0, inplace=True)
 	return dataset
 
 
