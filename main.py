@@ -125,16 +125,16 @@ def enrich_data(dataset):
 			tests.append(dataset.at[n, "casi_testati"] - dataset.at[n - 1, "casi_testati"])
 	dataset.drop(columns="tamponi", inplace=True)
 	dataset.drop(columns="casi_testati", inplace=True)
-	dataset["tamponi"] = tests
-
+	dataset["TAMPONI"] = tests
+	dataset.rename(columns={"data" : "DATA", "variazione_totale_positivi" : "NUOVI POSITIVI"}, inplace=True)
 	ratio = [0]
 	for n in range(1, dataset.shape[0]):
 		# Makes sure we're not dividing by 0 in case no tests are registered.
-		if dataset.at[n, "tamponi"] != 0:
-			ratio.append(dataset.at[n, "variazione_totale_positivi"] / dataset.at[n, "tamponi"] * 100)
+		if dataset.at[n, "TAMPONI"] != 0:
+			ratio.append(dataset.at[n, "NUOVI POSITIVI"] / dataset.at[n, "TAMPONI"] * 100)
 		else:
 			ratio.append(0)
-	dataset["rapporto"] = ratio
+	dataset["RAPPORTO"] = ratio
 	dataset.drop(index=0, inplace=True)
 	return dataset
 
@@ -205,10 +205,10 @@ def select_data_range(dataset, begin, end):
 #       A plottable line representing the computed linear regression.
 #
 def predict_data(dataset):
-	dataset["data"] = pandas.to_datetime(dataset["data"])
-	dataset["data"] = dataset["data"].map(datetime.datetime.toordinal)
-	x = dataset["data"].to_numpy().reshape(-1, 1)
-	y = dataset["rapporto"].to_numpy().reshape(-1, 1)
+	dataset["DATA"] = pandas.to_datetime(dataset["DATA"])
+	dataset["DATA"] = dataset["DATA"].map(datetime.datetime.toordinal)
+	x = dataset["DATA"].to_numpy().reshape(-1, 1)
+	y = dataset["RAPPORTO"].to_numpy().reshape(-1, 1)
 	linear_regressor = LinearRegression()
 	linear_regressor.fit(x, y)
 	predictor = linear_regressor.predict(x)
@@ -248,10 +248,10 @@ def show_national_report(dataset_path, begin=None, end=None):
 	else:
 		report.set_title("Global report")
 	report.autoscale()
-	report.scatter(dataset["data"], dataset["rapporto"])
+	report.scatter(dataset["DATA"], dataset["RAPPORTO"])
 
 	predictor = predict_data(dataset.copy())
-	report.plot(dataset["data"], predictor, color="red")
+	report.plot(dataset["DATA"], predictor, color="red")
 
 	print("")
 	print(tabify(dataset))
@@ -333,10 +333,10 @@ def show_regional_report(dataset_path, region, begin=None, end=None):
 	else:
 		report.set_title("Global report")
 	report.autoscale()
-	report.scatter(dataset["data"], dataset["rapporto"])
+	report.scatter(dataset["DATA"], dataset["RAPPORTO"])
 
 	predictor = predict_data(dataset.copy())
-	report.plot(dataset["data"], predictor, color="red")
+	report.plot(dataset["DATA"], predictor, color="red")
 
 	print("")
 	print(tabify(dataset))
