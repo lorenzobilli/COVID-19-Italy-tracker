@@ -24,7 +24,7 @@ import matplotlib.pyplot as mp
 import numpy
 import pandas
 from sklearn.linear_model import LinearRegression
-
+import tabulate
 
 #
 #   Brief:
@@ -239,6 +239,10 @@ def predict_data(dataset):
 #
 def show_national_report(dataset_path, begin=None, end=None):
 	pandas.set_option("display.max_rows", None)
+	pandas.set_option("display.max_columns", None)
+	pandas.set_option("display.width", None)
+
+	tabify = lambda dataframe: tabulate.tabulate(dataframe, headers="keys", tablefmt="psql")
 
 	dataset = parse_data(dataset_path)
 	dataset = cleanup_data(dataset)
@@ -260,11 +264,11 @@ def show_national_report(dataset_path, begin=None, end=None):
 	report.autoscale()
 	report.scatter(dataset["data"], dataset["rapporto"])
 
-	predictor = predict_data(dataset)
+	predictor = predict_data(dataset.copy())
 	report.plot(dataset["data"], predictor, color="red")
 
 	print("")
-	print(dataset)
+	print(tabify(dataset))
 	mp.show()
 
 
@@ -279,6 +283,10 @@ def show_national_report(dataset_path, begin=None, end=None):
 #
 def show_regional_report(dataset_path, region, begin=None, end=None):
 	pandas.set_option("display.max_rows", None)
+	pandas.set_option("display.max_columns", None)
+	pandas.set_option("display.width", None)
+
+	tabify = lambda dataframe:tabulate.tabulate(dataframe, headers="keys", tablefmt="psql")
 
 	dataset = parse_data(dataset_path, region)
 	dataset = cleanup_data(dataset)
@@ -341,11 +349,11 @@ def show_regional_report(dataset_path, region, begin=None, end=None):
 	report.autoscale()
 	report.scatter(dataset["data"], dataset["rapporto"])
 
-	predictor = predict_data(dataset)
+	predictor = predict_data(dataset.copy())
 	report.plot(dataset["data"], predictor, color="red")
 
 	print("")
-	print(dataset)
+	print(tabify(dataset))
 	mp.show()
 
 
