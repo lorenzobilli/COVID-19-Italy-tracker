@@ -63,15 +63,9 @@ class Region(IntEnum):
 #   Returns:
 #       A dataset as a pandas DataFrame object.
 #
-def parse_data(feed, region=None):
+def parse_data(feed):
 	raw_data = pandas.read_csv(feed, parse_dates=[0])
 	dataset = pandas.DataFrame(raw_data)
-	# We can already drop some NaN values here
-	dataset = dataset.drop(columns=["stato", "note"])
-	if region is not None:
-		dataset.drop(dataset[dataset["codice_regione"] != Region(region)].index, inplace=True)
-		dataset.reset_index(drop=True, inplace=True)
-		dataset = dataset.drop(columns=["codice_regione", "denominazione_regione", "lat", "long"])
 	return dataset
 
 
@@ -83,9 +77,10 @@ def parse_data(feed, region=None):
 #   Returns:
 #       A new dataset without the unnecessary columns.
 #
-def cleanup_data(dataset):
+def cleanup_data(dataset, region=None):
 	dataset = dataset.drop(columns=
 	[
+		"stato",
 		"ricoverati_con_sintomi",
 		"terapia_intensiva",
 		"totale_ospedalizzati",
@@ -96,8 +91,13 @@ def cleanup_data(dataset):
 		"deceduti",
 		"casi_da_sospetto_diagnostico",
 		"casi_da_screening",
-		"totale_casi"
+		"totale_casi",
+		"note"
 	])
+	if region is not None:
+		dataset.drop(dataset[dataset["codice_regione"] != Region(region)].index, inplace=True)
+		dataset.reset_index(drop=True, inplace=True)
+		dataset = dataset.drop(columns=["codice_regione", "denominazione_regione", "lat", "long"])
 	return dataset
 
 
@@ -288,8 +288,8 @@ def show_regional_report(dataset_path, region, begin=None, end=None):
 
 	tabify = lambda dataframe:tabulate.tabulate(dataframe, headers="keys", tablefmt="psql")
 
-	dataset = parse_data(dataset_path, region)
-	dataset = cleanup_data(dataset)
+	dataset = parse_data(dataset_path)
+	dataset = cleanup_data(dataset, region)
 	dataset = enrich_data(dataset)
 
 	figure, report = mp.subplots(1)
