@@ -116,7 +116,7 @@ def cleanup_data(dataset, region=None):
 #   Returns:
 #       A new dataset with all the new data required.
 #
-def enrich_data(dataset):
+def elaborate_data(dataset):
 	tests = [0]
 	for n in range(1, dataset.shape[0]):
 		if numpy.isnan(dataset.at[n - 1, "casi_testati"]):
@@ -232,7 +232,7 @@ def show_national_report(dataset_path, begin=None, end=None):
 
 	dataset = parse_data(dataset_path)
 	dataset = cleanup_data(dataset)
-	dataset = enrich_data(dataset)
+	dataset = elaborate_data(dataset)
 
 	figure, report = mp.subplots(1)
 	figure.suptitle("COVID-19 LINEAR REGRESSION: ITALIA")
@@ -276,7 +276,7 @@ def show_regional_report(dataset_path, region, begin=None, end=None):
 
 	dataset = parse_data(dataset_path)
 	dataset = cleanup_data(dataset, region)
-	dataset = enrich_data(dataset)
+	dataset = elaborate_data(dataset)
 
 	figure, report = mp.subplots(1)
 	title = "COVID-19 LINEAR REGRESSION: "
