@@ -24,7 +24,7 @@ import matplotlib.pyplot as mp
 import numpy
 import pandas
 from sklearn.linear_model import LinearRegression
-
+import tabulate
 
 #
 #   Brief:
@@ -59,19 +59,12 @@ class Region(IntEnum):
 #       Parses raw data retrieved from a CSV file and returns a dataset as a pandas DataFrame object.
 #   Parameters:
 #       - feed: Raw data to be parsed (must contain/point to a CSV file).
-#       - region: Region to be parsed (in casa we're parsing a regional dataset).
 #   Returns:
 #       A dataset as a pandas DataFrame object.
 #
-def parse_data(feed, region=None):
+def parse_data(feed):
 	raw_data = pandas.read_csv(feed, parse_dates=[0])
 	dataset = pandas.DataFrame(raw_data)
-	# We can already drop some NaN values here
-	dataset = dataset.drop(columns=["stato", "note"])
-	if region is not None:
-		dataset.drop(dataset[dataset["codice_regione"] != Region(region)].index, inplace=True)
-		dataset.reset_index(drop=True, inplace=True)
-		dataset = dataset.drop(columns=["codice_regione", "denominazione_regione", "lat", "long"])
 	return dataset
 
 
@@ -80,12 +73,14 @@ def parse_data(feed, region=None):
 #       Cleans up a given dataset by removing all columns that are not used during data analysis.
 #   Parameters:
 #       - dataset: Dataset from which the data shall be removed.
+#       - region: If provided, marks current dataset as a regional one, thus removing additional unneeded columns.
 #   Returns:
 #       A new dataset without the unnecessary columns.
 #
-def cleanup_data(dataset):
+def cleanup_data(dataset, region=None):
 	dataset = dataset.drop(columns=
 	[
+		"stato",
 		"ricoverati_con_sintomi",
 		"terapia_intensiva",
 		"totale_ospedalizzati",
@@ -96,14 +91,20 @@ def cleanup_data(dataset):
 		"deceduti",
 		"casi_da_sospetto_diagnostico",
 		"casi_da_screening",
-		"totale_casi"
+		"totale_casi",
+		"note"
 	])
+	if region is not None:
+		dataset.drop(dataset[dataset["codice_regione"] != Region(region)].index, inplace=True)
+		dataset.reset_index(drop=True, inplace=True)
+		dataset = dataset.drop(columns=["codice_regione", "denominazione_regione", "lat", "long"])
 	return dataset
 
 
 #
 #   Brief:
-#       Enriches data with new columns with data used to analyze trends.
+#       Enriches data with new columns with data used to analyze trends, and renames existing ones to a known,
+#       standardized string format.
 #   Detailed description:
 #       We can't draw a trend line without knowing how large the sample size is. By default, only new COVID-19 positive
 #       patients are indicated in official data. In order to achieve any vaguely scientific results we NEED to know the
@@ -116,40 +117,26 @@ def cleanup_data(dataset):
 #   Returns:
 #       A new dataset with all the new data required.
 #
-def enrich_data(dataset):
-	new_tests = [0]
-	new_cases = [0]
+def elaborate_data(dataset):
+	tests = [0]
 	for n in range(1, dataset.shape[0]):
-		new_tests.append(dataset.at[n, "tamponi"] - dataset.at[n - 1, "tamponi"])
 		if numpy.isnan(dataset.at[n - 1, "casi_testati"]):
-			new_cases.append(numpy.nan)
+			tests.append(dataset.at[n, "tamponi"] - dataset.at[n - 1, "tamponi"])
 		else:
-			new_cases.append(dataset.at[n, "casi_testati"] - dataset.at[n - 1, "casi_testati"])
-	dataset = dataset.drop(columns="tamponi")
-	dataset = dataset.drop(columns="casi_testati")
-	dataset["nuovi_tamponi"] = new_tests
-	dataset["nuovi_casi_testati"] = new_cases
-
+			tests.append(dataset.at[n, "casi_testati"] - dataset.at[n - 1, "casi_testati"])
+	dataset.drop(columns="tamponi", inplace=True)
+	dataset.drop(columns="casi_testati", inplace=True)
+	dataset["TAMPONI"] = tests
+	dataset.rename(columns={"data" : "DATA", "variazione_totale_positivi" : "NUOVI POSITIVI"}, inplace=True)
 	ratio = [0]
-	validated = [0]
 	for n in range(1, dataset.shape[0]):
-		if numpy.isnan(dataset.at[n, "nuovi_casi_testati"]):
-			# Makes sure we're not dividing by 0 in case no tests are registered.
-			if dataset.at[n, "nuovi_tamponi"] != 0:
-				ratio.append(dataset.at[n, "variazione_totale_positivi"] / dataset.at[n, "nuovi_tamponi"] * 100)
-			else:
-				ratio.append(0)
-			validated.append(False)
+		# Makes sure we're not dividing by 0 in case no tests are registered.
+		if dataset.at[n, "TAMPONI"] != 0:
+			ratio.append(dataset.at[n, "NUOVI POSITIVI"] / dataset.at[n, "TAMPONI"] * 100)
 		else:
-			# Makes sure we're not dividing by 0 in case no tests are registered.
-			if dataset.at[n, "nuovi_casi_testati"] != 0:
-				ratio.append(dataset.at[n, "variazione_totale_positivi"] / dataset.at[n, "nuovi_casi_testati"] * 100)
-			else:
-				ratio.append(0)
-			validated.append(True)
-	dataset["rapporto"] = ratio
-	dataset["validati"] = validated
-	dataset = dataset.drop(index=0)
+			ratio.append(0)
+	dataset["RAPPORTO"] = ratio
+	dataset.drop(index=0, inplace=True)
 	return dataset
 
 
@@ -219,10 +206,10 @@ def select_data_range(dataset, begin, end):
 #       A plottable line representing the computed linear regression.
 #
 def predict_data(dataset):
-	dataset["data"] = pandas.to_datetime(dataset["data"])
-	dataset["data"] = dataset["data"].map(datetime.datetime.toordinal)
-	x = dataset["data"].to_numpy().reshape(-1, 1)
-	y = dataset["rapporto"].to_numpy().reshape(-1, 1)
+	dataset["DATA"] = pandas.to_datetime(dataset["DATA"])
+	dataset["DATA"] = dataset["DATA"].map(datetime.datetime.toordinal)
+	x = dataset["DATA"].to_numpy().reshape(-1, 1)
+	y = dataset["RAPPORTO"].to_numpy().reshape(-1, 1)
 	linear_regressor = LinearRegression()
 	linear_regressor.fit(x, y)
 	predictor = linear_regressor.predict(x)
@@ -239,12 +226,14 @@ def predict_data(dataset):
 #
 def show_national_report(dataset_path, begin=None, end=None):
 	pandas.set_option("display.max_rows", None)
+	pandas.set_option("display.max_columns", None)
+	pandas.set_option("display.width", None)
+
+	tabify = lambda dataframe: tabulate.tabulate(dataframe, headers="keys", tablefmt="psql")
 
 	dataset = parse_data(dataset_path)
 	dataset = cleanup_data(dataset)
-	dataset = enrich_data(dataset)
-	print("")
-	print(dataset)
+	dataset = elaborate_data(dataset)
 
 	figure, report = mp.subplots(1)
 	figure.suptitle("COVID-19 LINEAR REGRESSION: ITALIA")
@@ -260,11 +249,13 @@ def show_national_report(dataset_path, begin=None, end=None):
 	else:
 		report.set_title("Global report")
 	report.autoscale()
-	report.scatter(dataset["data"], dataset["rapporto"])
+	report.scatter(dataset["DATA"], dataset["RAPPORTO"])
 
-	predictor = predict_data(dataset)
-	report.plot(dataset["data"], predictor, color="red")
+	predictor = predict_data(dataset.copy())
+	report.plot(dataset["DATA"], predictor, color="red")
 
+	print("")
+	print(tabify(dataset))
 	mp.show()
 
 
@@ -279,12 +270,14 @@ def show_national_report(dataset_path, begin=None, end=None):
 #
 def show_regional_report(dataset_path, region, begin=None, end=None):
 	pandas.set_option("display.max_rows", None)
+	pandas.set_option("display.max_columns", None)
+	pandas.set_option("display.width", None)
 
-	dataset = parse_data(dataset_path, region)
-	dataset = cleanup_data(dataset)
-	dataset = enrich_data(dataset)
-	print("")
-	print(dataset)
+	tabify = lambda dataframe:tabulate.tabulate(dataframe, headers="keys", tablefmt="psql")
+
+	dataset = parse_data(dataset_path)
+	dataset = cleanup_data(dataset, region)
+	dataset = elaborate_data(dataset)
 
 	figure, report = mp.subplots(1)
 	title = "COVID-19 LINEAR REGRESSION: "
@@ -341,11 +334,13 @@ def show_regional_report(dataset_path, region, begin=None, end=None):
 	else:
 		report.set_title("Global report")
 	report.autoscale()
-	report.scatter(dataset["data"], dataset["rapporto"])
+	report.scatter(dataset["DATA"], dataset["RAPPORTO"])
 
-	predictor = predict_data(dataset)
-	report.plot(dataset["data"], predictor, color="red")
+	predictor = predict_data(dataset.copy())
+	report.plot(dataset["DATA"], predictor, color="red")
 
+	print("")
+	print(tabify(dataset))
 	mp.show()
 
 
