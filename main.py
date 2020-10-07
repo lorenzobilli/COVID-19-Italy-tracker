@@ -86,7 +86,7 @@ def cleanup_data(dataset, region=None):
 		"totale_ospedalizzati",
 		"isolamento_domiciliare",
 		"totale_positivi",
-		"nuovi_positivi",
+		"variazione_totale_positivi",
 		"dimessi_guariti",
 		"deceduti",
 		"casi_da_sospetto_diagnostico",
@@ -127,7 +127,7 @@ def elaborate_data(dataset):
 	dataset.drop(columns="tamponi", inplace=True)
 	dataset.drop(columns="casi_testati", inplace=True)
 	dataset["TAMPONI"] = tests
-	dataset.rename(columns={"data" : "DATA", "variazione_totale_positivi" : "NUOVI POSITIVI"}, inplace=True)
+	dataset.rename(columns={"data" : "DATA", "nuovi_positivi" : "NUOVI POSITIVI"}, inplace=True)
 	ratio = [0]
 	for n in range(1, dataset.shape[0]):
 		# Makes sure we're not dividing by 0 in case no tests are registered.
