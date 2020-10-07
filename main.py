@@ -65,6 +65,8 @@ class Region(IntEnum):
 def parse_data(feed):
 	raw_data = pandas.read_csv(feed, parse_dates=[0])
 	dataset = pandas.DataFrame(raw_data)
+	dataset["data"] = pandas.to_datetime(dataset["data"])
+	dataset["data"] = dataset["data"].dt.date
 	return dataset
 
 
@@ -206,7 +208,6 @@ def select_data_range(dataset, begin, end):
 #       A plottable line representing the computed linear regression.
 #
 def predict_data(dataset):
-	dataset["DATA"] = pandas.to_datetime(dataset["DATA"])
 	dataset["DATA"] = dataset["DATA"].map(datetime.datetime.toordinal)
 	x = dataset["DATA"].to_numpy().reshape(-1, 1)
 	y = dataset["RAPPORTO"].to_numpy().reshape(-1, 1)
