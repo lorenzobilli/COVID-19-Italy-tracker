@@ -449,24 +449,25 @@ def main():
 				print("1) Abruzzo")
 				print("2) Basilicata")
 				print("3) Calabria")
-				print("4) Emilia-Romagna")
-				print("5) Friuli Venezia Giulia")
-				print("6) Lazio")
-				print("7) Liguria")
-				print("8) Lombardia")
-				print("9) Marche")
-				print("10) Molise")
-				print("11) P.A. Bolzano")
-				print("12) P.A. Trento")
-				print("13) Piemonte")
-				print("14) Puglia")
-				print("15) Sardegna")
-				print("16) Sicilia")
-				print("17) Toscana")
-				print("18) Umbria")
-				print("19) Valle d'Aosta")
-				print("20) Veneto")
-				print("21) Indietro")
+				print("4) Campania")
+				print("5) Emilia-Romagna")
+				print("6) Friuli Venezia Giulia")
+				print("7) Lazio")
+				print("8) Liguria")
+				print("9) Lombardia")
+				print("10) Marche")
+				print("11) Molise")
+				print("12) P.A. Bolzano")
+				print("13) P.A. Trento")
+				print("14) Piemonte")
+				print("15) Puglia")
+				print("16) Sardegna")
+				print("17) Sicilia")
+				print("18) Toscana")
+				print("19) Umbria")
+				print("20) Valle d'Aosta")
+				print("21) Veneto")
+				print("22) Indietro")
 				suboption = input(">: ")
 				if int(suboption) == 1:
 					choose_report_type(regional_data_path, Region.ABRUZZO)
@@ -475,40 +476,42 @@ def main():
 				elif int(suboption) == 3:
 					choose_report_type(regional_data_path, Region.CALABRIA)
 				elif int(suboption) == 4:
-					choose_report_type(regional_data_path, Region.EMILIA_ROMAGNA)
+					choose_report_type(regional_data_path, Region.CAMPANIA)
 				elif int(suboption) == 5:
-					choose_report_type(regional_data_path, Region.FRIULI_VENEZIA_GIULIA)
+					choose_report_type(regional_data_path, Region.EMILIA_ROMAGNA)
 				elif int(suboption) == 6:
-					choose_report_type(regional_data_path, Region.LAZIO)
+					choose_report_type(regional_data_path, Region.FRIULI_VENEZIA_GIULIA)
 				elif int(suboption) == 7:
-					choose_report_type(regional_data_path, Region.LIGURIA)
+					choose_report_type(regional_data_path, Region.LAZIO)
 				elif int(suboption) == 8:
-					choose_report_type(regional_data_path, Region.LOMBARDIA)
+					choose_report_type(regional_data_path, Region.LIGURIA)
 				elif int(suboption) == 9:
-					choose_report_type(regional_data_path, Region.MARCHE)
+					choose_report_type(regional_data_path, Region.LOMBARDIA)
 				elif int(suboption) == 10:
-					choose_report_type(regional_data_path, Region.MOLISE)
+					choose_report_type(regional_data_path, Region.MARCHE)
 				elif int(suboption) == 11:
-					choose_report_type(regional_data_path, Region.PA_BOLZANO)
+					choose_report_type(regional_data_path, Region.MOLISE)
 				elif int(suboption) == 12:
-					choose_report_type(regional_data_path, Region.PA_TRENTO)
+					choose_report_type(regional_data_path, Region.PA_BOLZANO)
 				elif int(suboption) == 13:
-					choose_report_type(regional_data_path, Region.PIEMONTE)
+					choose_report_type(regional_data_path, Region.PA_TRENTO)
 				elif int(suboption) == 14:
-					choose_report_type(regional_data_path, Region.PUGLIA)
+					choose_report_type(regional_data_path, Region.PIEMONTE)
 				elif int(suboption) == 15:
-					choose_report_type(regional_data_path, Region.SARDEGNA)
+					choose_report_type(regional_data_path, Region.PUGLIA)
 				elif int(suboption) == 16:
-					choose_report_type(regional_data_path, Region.SICILIA)
+					choose_report_type(regional_data_path, Region.SARDEGNA)
 				elif int(suboption) == 17:
-					choose_report_type(regional_data_path, Region.TOSCANA)
+					choose_report_type(regional_data_path, Region.SICILIA)
 				elif int(suboption) == 18:
-					choose_report_type(regional_data_path, Region.UMBRIA)
+					choose_report_type(regional_data_path, Region.TOSCANA)
 				elif int(suboption) == 19:
-					choose_report_type(regional_data_path, Region.VALLE_D_AOSTA)
+					choose_report_type(regional_data_path, Region.UMBRIA)
 				elif int(suboption) == 20:
-					choose_report_type(regional_data_path, Region.VENETO)
+					choose_report_type(regional_data_path, Region.VALLE_D_AOSTA)
 				elif int(suboption) == 21:
+					choose_report_type(regional_data_path, Region.VENETO)
+				elif int(suboption) == 22:
 					break
 				else:
 					print("Opzione selezionata non valida")
