@@ -432,6 +432,7 @@ def main():
 
 	national_data_path = Path(sys.argv[1] + "/dati-andamento-nazionale/dpc-covid19-ita-andamento-nazionale.csv")
 	regional_data_path = Path(sys.argv[1] + "/dati-regioni/dpc-covid19-ita-regioni.csv")
+	latest_regional_data_path = Path(sys.argv[1] + "/dati-regioni/dpc-covid19-ita-regioni-latest.csv")
 
 	print_splashscreen()
 
@@ -439,7 +440,8 @@ def main():
 		print("")
 		print("1) Andamento nazionale")
 		print("2) Andamento regionale")
-		print("3) Uscita")
+		print("3) Classifica nazionale contagi")
+		print("4) Uscita")
 		option = input(">: ")
 		if int(option) == 1:
 			choose_report_type(national_data_path)
@@ -516,6 +518,8 @@ def main():
 				else:
 					print("Opzione selezionata non valida")
 		elif int(option) == 3:
+			print("Opzione attualmente non implementata")
+		elif int(option) == 4:
 			break
 		else:
 			print("Opzione selezionata non valida")
