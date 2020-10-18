@@ -54,9 +54,7 @@ class Region(IntEnum):
 	VENETO = 5
 
 
-def pretty_print(dataframe):
-	tabify = lambda dataframe: tabulate.tabulate(dataframe, headers="keys", tablefmt="psql")
-	print(tabify(dataframe))
+tabify = lambda dataframe: tabulate.tabulate(dataframe, headers="keys", tablefmt="psql")
 
 #
 #   Brief:
@@ -234,8 +232,6 @@ def show_national_report(dataset_path, begin=None, end=None):
 	pandas.set_option("display.max_columns", None)
 	pandas.set_option("display.width", None)
 
-	tabify = lambda dataframe: tabulate.tabulate(dataframe, headers="keys", tablefmt="psql")
-
 	dataset = parse_data(dataset_path)
 	dataset = cleanup_data(dataset)
 	dataset = elaborate_data(dataset)
@@ -277,8 +273,6 @@ def show_regional_report(dataset_path, region, begin=None, end=None):
 	pandas.set_option("display.max_rows", None)
 	pandas.set_option("display.max_columns", None)
 	pandas.set_option("display.width", None)
-
-	tabify = lambda dataframe:tabulate.tabulate(dataframe, headers="keys", tablefmt="psql")
 
 	dataset = parse_data(dataset_path)
 	dataset = cleanup_data(dataset, region)
@@ -458,7 +452,9 @@ def show_national_ranking(dataset_path):
 	ranking["RAPPORTO"] = ranking["RAPPORTO"].astype(float)
 	ranking.sort_values(by="RAPPORTO", ascending=False, inplace=True)
 
-	pretty_print(ranking)
+	print("")
+	print(tabify(ranking))
+
 
 #
 #   Brief:
