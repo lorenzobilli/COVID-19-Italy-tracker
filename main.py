@@ -54,7 +54,12 @@ class Region(IntEnum):
 	VENETO = 5
 
 
+#
+#   Brief:
+#       Lambda expression to quickly tabulate ready-to-be-printed data.
+#
 tabify = lambda dataframe: tabulate.tabulate(dataframe, headers="keys", tablefmt="psql")
+
 
 #
 #   Brief:
@@ -390,6 +395,12 @@ def choose_report_type(dataset_path, region=None):
 			print("Opzione selezionata non valida")
 
 
+#
+#   Brief:
+#       Shows the national daily ranking sorted by ratio values.
+#   Parameters:
+#       - dataset_path: Path pointing to the CSV file used to generate the report.
+#
 def show_national_ranking(dataset_path):
 	dataset = parse_data(dataset_path)
 	results = {}
