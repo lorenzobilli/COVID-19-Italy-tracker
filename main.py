@@ -54,6 +54,10 @@ class Region(IntEnum):
 	VENETO = 5
 
 
+def pretty_print(dataframe):
+	tabify = lambda dataframe: tabulate.tabulate(dataframe, headers="keys", tablefmt="psql")
+	print(tabify(dataframe))
+
 #
 #   Brief:
 #       Parses raw data retrieved from a CSV file and returns a dataset as a pandas DataFrame object.
@@ -392,6 +396,70 @@ def choose_report_type(dataset_path, region=None):
 			print("Opzione selezionata non valida")
 
 
+def show_national_ranking(dataset_path):
+	dataset = parse_data(dataset_path)
+	results = {}
+	ranking = pandas.DataFrame()
+
+	for region in Region:
+		regional_dataset = dataset.copy()
+		regional_dataset = cleanup_data(regional_dataset, region)
+		regional_dataset = elaborate_data(regional_dataset)
+		results[region] = regional_dataset
+
+	ranking["REGIONE"] = [
+		"Abruzzo",
+		"Basilicata",
+		"Calabria",
+		"Campania",
+		"Emilia-Romagna",
+		"Friuli Venezia Giulia",
+		"Lazio",
+		"Liguria",
+		"Lombardia",
+		"Marche",
+		"Molise",
+		"P.A. Bolzano",
+		"P.A. Trento",
+		"Piemonte",
+		"Puglia",
+		"Sardegna",
+		"Sicilia",
+		"Toscana",
+		"Umbria",
+		"Valle d'Aosta",
+		"Veneto"
+	]
+
+	ranking["RAPPORTO"] = [
+		results.get(Region.ABRUZZO).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.BASILICATA).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.CALABRIA).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.CAMPANIA).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.EMILIA_ROMAGNA).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.FRIULI_VENEZIA_GIULIA).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.LAZIO).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.LIGURIA).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.LOMBARDIA).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.MARCHE).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.MOLISE).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.PA_BOLZANO).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.PA_TRENTO).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.PIEMONTE).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.PUGLIA).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.SARDEGNA).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.SICILIA).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.TOSCANA).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.UMBRIA).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.VALLE_D_AOSTA).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.VENETO).tail(1).loc[:, "RAPPORTO"]
+	]
+
+	ranking["RAPPORTO"] = ranking["RAPPORTO"].astype(float)
+	ranking.sort_values(by="RAPPORTO", ascending=False, inplace=True)
+
+	pretty_print(ranking)
+
 #
 #   Brief:
 #       Prints a formatted welcome splash screen.
@@ -432,7 +500,6 @@ def main():
 
 	national_data_path = Path(sys.argv[1] + "/dati-andamento-nazionale/dpc-covid19-ita-andamento-nazionale.csv")
 	regional_data_path = Path(sys.argv[1] + "/dati-regioni/dpc-covid19-ita-regioni.csv")
-	latest_regional_data_path = Path(sys.argv[1] + "/dati-regioni/dpc-covid19-ita-regioni-latest.csv")
 
 	print_splashscreen()
 
@@ -518,7 +585,7 @@ def main():
 				else:
 					print("Opzione selezionata non valida")
 		elif int(option) == 3:
-			print("Opzione attualmente non implementata")
+			show_national_ranking(regional_data_path)
 		elif int(option) == 4:
 			break
 		else:
