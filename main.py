@@ -56,6 +56,13 @@ class Region(IntEnum):
 
 #
 #   Brief:
+#       Lambda expression to quickly tabulate ready-to-be-printed data.
+#
+tabify = lambda dataframe: tabulate.tabulate(dataframe, headers="keys", tablefmt="psql")
+
+
+#
+#   Brief:
 #       Parses raw data retrieved from a CSV file and returns a dataset as a pandas DataFrame object.
 #   Parameters:
 #       - feed: Raw data to be parsed (must contain/point to a CSV file).
@@ -230,8 +237,6 @@ def show_national_report(dataset_path, begin=None, end=None):
 	pandas.set_option("display.max_columns", None)
 	pandas.set_option("display.width", None)
 
-	tabify = lambda dataframe: tabulate.tabulate(dataframe, headers="keys", tablefmt="psql")
-
 	dataset = parse_data(dataset_path)
 	dataset = cleanup_data(dataset)
 	dataset = elaborate_data(dataset)
@@ -273,8 +278,6 @@ def show_regional_report(dataset_path, region, begin=None, end=None):
 	pandas.set_option("display.max_rows", None)
 	pandas.set_option("display.max_columns", None)
 	pandas.set_option("display.width", None)
-
-	tabify = lambda dataframe:tabulate.tabulate(dataframe, headers="keys", tablefmt="psql")
 
 	dataset = parse_data(dataset_path)
 	dataset = cleanup_data(dataset, region)
@@ -394,6 +397,78 @@ def choose_report_type(dataset_path, region=None):
 
 #
 #   Brief:
+#       Shows the national daily ranking sorted by ratio values.
+#   Parameters:
+#       - dataset_path: Path pointing to the CSV file used to generate the report.
+#
+def show_national_ranking(dataset_path):
+	dataset = parse_data(dataset_path)
+	results = {}
+	ranking = pandas.DataFrame()
+
+	for region in Region:
+		regional_dataset = dataset.copy()
+		regional_dataset = cleanup_data(regional_dataset, region)
+		regional_dataset = elaborate_data(regional_dataset)
+		results[region] = regional_dataset
+
+	ranking["REGIONE"] = [
+		"Abruzzo",
+		"Basilicata",
+		"Calabria",
+		"Campania",
+		"Emilia-Romagna",
+		"Friuli Venezia Giulia",
+		"Lazio",
+		"Liguria",
+		"Lombardia",
+		"Marche",
+		"Molise",
+		"P.A. Bolzano",
+		"P.A. Trento",
+		"Piemonte",
+		"Puglia",
+		"Sardegna",
+		"Sicilia",
+		"Toscana",
+		"Umbria",
+		"Valle d'Aosta",
+		"Veneto"
+	]
+
+	ranking["RAPPORTO"] = [
+		results.get(Region.ABRUZZO).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.BASILICATA).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.CALABRIA).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.CAMPANIA).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.EMILIA_ROMAGNA).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.FRIULI_VENEZIA_GIULIA).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.LAZIO).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.LIGURIA).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.LOMBARDIA).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.MARCHE).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.MOLISE).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.PA_BOLZANO).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.PA_TRENTO).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.PIEMONTE).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.PUGLIA).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.SARDEGNA).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.SICILIA).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.TOSCANA).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.UMBRIA).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.VALLE_D_AOSTA).tail(1).loc[:, "RAPPORTO"],
+		results.get(Region.VENETO).tail(1).loc[:, "RAPPORTO"]
+	]
+
+	ranking["RAPPORTO"] = ranking["RAPPORTO"].astype(float)
+	ranking.sort_values(by="RAPPORTO", ascending=False, inplace=True)
+
+	print("")
+	print(tabify(ranking))
+
+
+#
+#   Brief:
 #       Prints a formatted welcome splash screen.
 #
 def print_splashscreen():
@@ -439,7 +514,8 @@ def main():
 		print("")
 		print("1) Andamento nazionale")
 		print("2) Andamento regionale")
-		print("3) Uscita")
+		print("3) Classifica nazionale contagi")
+		print("4) Uscita")
 		option = input(">: ")
 		if int(option) == 1:
 			choose_report_type(national_data_path)
@@ -516,6 +592,8 @@ def main():
 				else:
 					print("Opzione selezionata non valida")
 		elif int(option) == 3:
+			show_national_ranking(regional_data_path)
+		elif int(option) == 4:
 			break
 		else:
 			print("Opzione selezionata non valida")
