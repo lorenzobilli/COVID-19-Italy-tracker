@@ -132,9 +132,9 @@ def elaborate_data(dataset):
 	tests = [0]
 	for n in range(1, dataset.shape[0]):
 		if numpy.isnan(dataset.at[n - 1, "casi_testati"]):
-			tests.append(dataset.at[n, "tamponi"] - dataset.at[n - 1, "tamponi"])
+			tests.insert(n, dataset.at[n, "tamponi"] - dataset.at[n - 1, "tamponi"])
 		else:
-			tests.append(dataset.at[n, "casi_testati"] - dataset.at[n - 1, "casi_testati"])
+			tests.insert(n, dataset.at[n, "casi_testati"] - dataset.at[n - 1, "casi_testati"])
 	dataset.drop(columns="tamponi", inplace=True)
 	dataset.drop(columns="casi_testati", inplace=True)
 	dataset["TAMPONI"] = tests
@@ -143,9 +143,9 @@ def elaborate_data(dataset):
 	for n in range(1, dataset.shape[0]):
 		# Makes sure we're not dividing by 0 in case no tests are registered.
 		if dataset.at[n, "TAMPONI"] != 0:
-			ratio.append(dataset.at[n, "NUOVI POSITIVI"] / dataset.at[n, "TAMPONI"] * 100)
+			ratio.insert(n, dataset.at[n, "NUOVI POSITIVI"] / dataset.at[n, "TAMPONI"] * 100)
 		else:
-			ratio.append(0)
+			ratio.insert(n, 0)
 	dataset["RAPPORTO"] = ratio
 	dataset.drop(index=0, inplace=True)
 	return dataset
