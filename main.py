@@ -20,11 +20,13 @@ import sys
 from enum import IntEnum
 from pathlib import Path
 
+import multiprocessing
 import matplotlib.pyplot as mp
 import numpy
 import pandas
 from sklearn.linear_model import LinearRegression
 import tabulate
+
 
 #
 #   Brief:
@@ -218,7 +220,7 @@ def predict_data(dataset):
 	dataset["DATA"] = dataset["DATA"].map(datetime.datetime.toordinal)
 	x = dataset["DATA"].to_numpy().reshape(-1, 1)
 	y = dataset["RAPPORTO"].to_numpy().reshape(-1, 1)
-	linear_regressor = LinearRegression()
+	linear_regressor = LinearRegression(n_jobs=multiprocessing.cpu_count())
 	linear_regressor.fit(x, y)
 	predictor = linear_regressor.predict(x)
 	return predictor
