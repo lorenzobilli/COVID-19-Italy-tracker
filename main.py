@@ -403,6 +403,20 @@ def collect_regional_dataset(dataset, region, results):
 
 #
 #   Brief:
+#       Populates two separate lists containing regions and corresponding ratios for building up the ranking.
+#   Parameters:
+#       - n: Index of the lists where regions name and ratios shall be inserted.
+#       - regions: List containing all regions' names
+#       - ratios: List containing all regions' ratios
+#       - results: Dictionary from where ratios are retrieved.
+#
+def build_ranking_lists(n, regions, ratios, region, results):
+	regions.insert(n, region.value[1])
+	ratios.insert(n, results.get(region).tail(1).loc[:, "RAPPORTO"])
+
+
+#
+#   Brief:
 #       Shows the national daily ranking sorted by ratio values.
 #   Parameters:
 #       - dataset_path: Path pointing to the CSV file used to generate the report.
@@ -416,54 +430,15 @@ def show_national_ranking(dataset_path):
 		delayed(collect_regional_dataset)(dataset, region, results) for region in Region
 	)
 
-	ranking["REGIONE"] = [
-		"Abruzzo",
-		"Basilicata",
-		"Calabria",
-		"Campania",
-		"Emilia-Romagna",
-		"Friuli Venezia Giulia",
-		"Lazio",
-		"Liguria",
-		"Lombardia",
-		"Marche",
-		"Molise",
-		"P.A. Bolzano",
-		"P.A. Trento",
-		"Piemonte",
-		"Puglia",
-		"Sardegna",
-		"Sicilia",
-		"Toscana",
-		"Umbria",
-		"Valle d'Aosta",
-		"Veneto"
-	]
+	regions = []
+	ratios = []
 
-	ranking["RAPPORTO"] = [
-		results.get(Region.ABRUZZO).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.BASILICATA).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.CALABRIA).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.CAMPANIA).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.EMILIA_ROMAGNA).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.FRIULI_VENEZIA_GIULIA).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.LAZIO).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.LIGURIA).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.LOMBARDIA).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.MARCHE).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.MOLISE).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.PA_BOLZANO).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.PA_TRENTO).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.PIEMONTE).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.PUGLIA).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.SARDEGNA).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.SICILIA).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.TOSCANA).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.UMBRIA).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.VALLE_D_AOSTA).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.VENETO).tail(1).loc[:, "RAPPORTO"]
-	]
+	Parallel(multiprocessing.cpu_count(), require="sharedmem")(
+		delayed(build_ranking_lists)(n, regions, ratios, region, results) for n, region in enumerate(Region)
+	)
 
+	ranking["REGIONE"] = regions
+	ranking["RAPPORTO"] = ratios
 	ranking["RAPPORTO"] = ranking["RAPPORTO"].astype(float)
 	ranking.sort_values(by="RAPPORTO", ascending=False, inplace=True)
 	ranking.reset_index(drop=True, inplace=True)
