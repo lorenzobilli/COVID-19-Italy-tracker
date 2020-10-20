@@ -256,55 +256,13 @@ def predict_data(dataset):
 
 #
 #   Brief:
-#       Runs a report based on the given parameters. By default it plots the global national report.
+#       Runs a report based on the given parameters.
 #   Parameters:
 #       - dataset_path: Path pointing to the CSV file used as dataset.
 #       - begin: Number of days to analyze in the report starting from the beginning.
 #       - end: Number of days to analyze in the report starting from the end.
 #
-def show_national_report(dataset_path, begin=None, end=None):
-	pandas.set_option("display.max_rows", None)
-	pandas.set_option("display.max_columns", None)
-	pandas.set_option("display.width", None)
-
-	dataset = parse_data(dataset_path)
-	dataset = cleanup_data(dataset)
-	dataset = elaborate_data(dataset)
-
-	figure, report = mp.subplots(1)
-	figure.suptitle("COVID-19 LINEAR REGRESSION: ITALIA")
-	if begin is not None and end is not None:
-		report.set_title("From day " + str(begin) + " to day " + str(end))
-		dataset = select_data_range(dataset, int(begin), int(end))
-	elif begin is not None and end is None:
-		report.set_title("First " + str(begin) + " days")
-		dataset = select_data_head(dataset, int(begin))
-	elif begin is None and end is not None:
-		report.set_title("Last " + str(end) + " days")
-		dataset = select_data_tail(dataset, int(end))
-	else:
-		report.set_title("Global report")
-	report.autoscale()
-	report.scatter(dataset["DATA"], dataset["RAPPORTO"])
-
-	predictor = predict_data(dataset.copy())
-	report.plot(dataset["DATA"], predictor, color="red")
-
-	print("")
-	print(tabify(dataset))
-	mp.show()
-
-
-#
-#   Brief:
-#       Runs a report based on the given parameters. By default it plots the global regional report.
-#   Parameters:
-#       - dataset_path: Path pointing to the CSV file used as dataset.
-#       - region: Region which will be analyzed to generate the report.
-#       - begin: Number of days to analyze in the report starting from the beginning.
-#       - end: Number of days to analyze in the report starting from the end.
-#
-def show_regional_report(dataset_path, region, begin=None, end=None):
+def show_report(dataset_path, region=None, begin=None, end=None):
 	pandas.set_option("display.max_rows", None)
 	pandas.set_option("display.max_columns", None)
 	pandas.set_option("display.width", None)
@@ -314,7 +272,11 @@ def show_regional_report(dataset_path, region, begin=None, end=None):
 	dataset = elaborate_data(dataset)
 
 	figure, report = mp.subplots(1)
-	title = "COVID-19 LINEAR REGRESSION: REGIONE " + region.value[1].upper()
+	title = "COVID-19 LINEAR REGRESSION: "
+	if region is None:
+		title += " ITALIA"
+	else:
+		title += " REGIONE " + region.value[1].upper()
 	figure.suptitle(title)
 
 	if begin is not None and end is not None:
@@ -357,29 +319,17 @@ def choose_report_type(dataset_path, region=None):
 		print("5) Indietro")
 		option = input(">: ")
 		if int(option) == 1:
-			if region is None:
-				show_national_report(dataset_path)
-			else:
-				show_regional_report(dataset_path, region)
+			show_report(dataset_path, region)
 		elif int(option) == 2:
 			begin = input("Numero giorni: ")
-			if region is None:
-				show_national_report(dataset_path, begin=begin)
-			else:
-				show_regional_report(dataset_path, region, begin=begin)
+			show_report(dataset_path, region, begin=begin)
 		elif int(option) == 3:
 			end = input("Numero giorni: ")
-			if region is None:
-				show_national_report(dataset_path, end=end)
-			else:
-				show_regional_report(dataset_path, region, end=end)
+			show_report(dataset_path, region, end=end)
 		elif int(option) == 4:
 			begin = input("Giorno iniziale: ")
 			end = input("Giorno finale: ")
-			if region is None:
-				show_national_report(dataset_path, begin, end)
-			else:
-				show_regional_report(dataset_path, region, begin, end)
+			show_report(dataset_path, region, begin=begin, end=end)
 		elif int(option) == 5:
 			break
 		else:
