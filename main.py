@@ -17,7 +17,7 @@
 
 import datetime
 import sys
-from enum import IntEnum
+from enum import Enum
 from pathlib import Path
 from joblib import Parallel, delayed
 
@@ -33,35 +33,40 @@ import tabulate
 #   Brief:
 #       Enum used for regions. Integer values correspond to the internal regional ID used in the datasets.
 #
-class Region(IntEnum):
-	ABRUZZO = 13
-	BASILICATA = 17
-	CALABRIA = 18
-	CAMPANIA = 15
-	EMILIA_ROMAGNA = 8
-	FRIULI_VENEZIA_GIULIA = 6
-	LAZIO = 12
-	LIGURIA = 7
-	LOMBARDIA = 3
-	MARCHE = 11
-	MOLISE = 14
-	PA_BOLZANO = 21
-	PA_TRENTO = 22
-	PIEMONTE = 1
-	PUGLIA = 16
-	SARDEGNA = 20
-	SICILIA = 19
-	TOSCANA = 9
-	UMBRIA = 10
-	VALLE_D_AOSTA = 2
-	VENETO = 5
+class Region(Enum):
+	ABRUZZO = 13, "Abruzzo"
+	BASILICATA = 17, "Basilicata"
+	CALABRIA = 18, "Calabria"
+	CAMPANIA = 15, "Campania"
+	EMILIA_ROMAGNA = 8, "Emilia-Romagna"
+	FRIULI_VENEZIA_GIULIA = 6, "Friuli Venezia Giulia"
+	LAZIO = 12, "Lazio"
+	LIGURIA = 7, "Liguria"
+	LOMBARDIA = 3, "Lombardia"
+	MARCHE = 11, "Marche"
+	MOLISE = 14, "Molise"
+	PA_BOLZANO = 21, "P.A. Bolzano"
+	PA_TRENTO = 22, "P.A. Trento"
+	PIEMONTE = 1, "Piemonte"
+	PUGLIA = 16, "Puglia"
+	SARDEGNA = 20, "Sardegna"
+	SICILIA = 19, "Sicilia"
+	TOSCANA = 9, "Toscana"
+	UMBRIA = 10, "Umbria"
+	VALLE_D_AOSTA = 2, "Valle d'Aosta"
+	VENETO = 5, "Veneto"
 
 
 #
 #   Brief:
-#       Lambda expression to quickly tabulate ready-to-be-printed data.
+#       Quickly tabulates ready-to-be-printed data.
+#   Parameters:
+#       - dataframe: Data to be tabulated.
+#   Returns:
+#       Formatted data in tabular, printable form.
 #
-tabify = lambda dataframe: tabulate.tabulate(dataframe, headers="keys", tablefmt="psql")
+def tabify(dataframe):
+	return tabulate.tabulate(dataframe, headers="keys", tablefmt="psql")
 
 
 #
@@ -106,7 +111,7 @@ def cleanup_data(dataset, region=None):
 		"note"
 	])
 	if region is not None:
-		dataset.drop(dataset[dataset["codice_regione"] != Region(region)].index, inplace=True)
+		dataset.drop(dataset[dataset["codice_regione"] != region.value[0]].index, inplace=True)
 		dataset.reset_index(drop=True, inplace=True)
 		dataset = dataset.drop(columns=["codice_regione", "denominazione_regione", "lat", "long"])
 	return dataset
@@ -256,55 +261,13 @@ def predict_data(dataset):
 
 #
 #   Brief:
-#       Runs a report based on the given parameters. By default it plots the global national report.
+#       Runs a report based on the given parameters.
 #   Parameters:
 #       - dataset_path: Path pointing to the CSV file used as dataset.
 #       - begin: Number of days to analyze in the report starting from the beginning.
 #       - end: Number of days to analyze in the report starting from the end.
 #
-def show_national_report(dataset_path, begin=None, end=None):
-	pandas.set_option("display.max_rows", None)
-	pandas.set_option("display.max_columns", None)
-	pandas.set_option("display.width", None)
-
-	dataset = parse_data(dataset_path)
-	dataset = cleanup_data(dataset)
-	dataset = elaborate_data(dataset)
-
-	figure, report = mp.subplots(1)
-	figure.suptitle("COVID-19 LINEAR REGRESSION: ITALIA")
-	if begin is not None and end is not None:
-		report.set_title("From day " + str(begin) + " to day " + str(end))
-		dataset = select_data_range(dataset, int(begin), int(end))
-	elif begin is not None and end is None:
-		report.set_title("First " + str(begin) + " days")
-		dataset = select_data_head(dataset, int(begin))
-	elif begin is None and end is not None:
-		report.set_title("Last " + str(end) + " days")
-		dataset = select_data_tail(dataset, int(end))
-	else:
-		report.set_title("Global report")
-	report.autoscale()
-	report.scatter(dataset["DATA"], dataset["RAPPORTO"])
-
-	predictor = predict_data(dataset.copy())
-	report.plot(dataset["DATA"], predictor, color="red")
-
-	print("")
-	print(tabify(dataset))
-	mp.show()
-
-
-#
-#   Brief:
-#       Runs a report based on the given parameters. By default it plots the global regional report.
-#   Parameters:
-#       - dataset_path: Path pointing to the CSV file used as dataset.
-#       - region: Region which will be analyzed to generate the report.
-#       - begin: Number of days to analyze in the report starting from the beginning.
-#       - end: Number of days to analyze in the report starting from the end.
-#
-def show_regional_report(dataset_path, region, begin=None, end=None):
+def show_report(dataset_path, region=None, begin=None, end=None):
 	pandas.set_option("display.max_rows", None)
 	pandas.set_option("display.max_columns", None)
 	pandas.set_option("display.width", None)
@@ -315,47 +278,12 @@ def show_regional_report(dataset_path, region, begin=None, end=None):
 
 	figure, report = mp.subplots(1)
 	title = "COVID-19 LINEAR REGRESSION: "
-	if region == Region.ABRUZZO:
-		title += "REGIONE ABRUZZO"
-	elif region == Region.BASILICATA:
-		title += "REGIONE BASILICATA"
-	elif region == Region.CALABRIA:
-		title += "REGIONE CALABRIA"
-	elif region == Region.CAMPANIA:
-		title += "REGIONE CAMPANIA"
-	elif region == Region.EMILIA_ROMAGNA:
-		title += "REGIONE EMILIA-ROMAGNA"
-	elif region == Region.FRIULI_VENEZIA_GIULIA:
-		title += "REGIONE FRIULI-VENEZIA GIULIA"
-	elif region == Region.LAZIO:
-		title += "REGIONE LAZIO"
-	elif region == Region.LIGURIA:
-		title += "REGIONE LIGURIA"
-	elif region == Region.LOMBARDIA:
-		title += "REGIONE LOMBARDIA"
-	elif region == Region.MARCHE:
-		title += "REGIONE MARCHE"
-	elif region == Region.MOLISE:
-		title += "REGIONE MOLISE"
-	elif region == Region.PA_BOLZANO:
-		title += "P.A. BOLZANO"
-	elif region == Region.PA_TRENTO:
-		title += "P.A. TRENTO"
-	elif region == Region.PIEMONTE:
-		title += "REGIONE PIEMENTE"
-	elif region == Region.PUGLIA:
-		title += "REGIONE PUGLIA"
-	elif region == Region.SARDEGNA:
-		title += "REGIONE SARDEGNA"
-	elif region == Region.SICILIA:
-		title += "REGIONE SICILIA"
-	elif region == Region.TOSCANA:
-		title += "REGIONE TOSCANA"
-	elif region == Region.UMBRIA:
-		title += "REGIONE VALLE D'AOSTA"
-	elif region == Region.VENETO:
-		title += "REGIONE VENETO"
+	if region is None:
+		title += " ITALIA"
+	else:
+		title += " REGIONE " + region.value[1].upper()
 	figure.suptitle(title)
+
 	if begin is not None and end is not None:
 		report.set_title("From day " + str(begin) + " to day " + str(end))
 		dataset = select_data_range(dataset, int(begin), int(end))
@@ -396,29 +324,17 @@ def choose_report_type(dataset_path, region=None):
 		print("5) Indietro")
 		option = input(">: ")
 		if int(option) == 1:
-			if region is None:
-				show_national_report(dataset_path)
-			else:
-				show_regional_report(dataset_path, region)
+			show_report(dataset_path, region)
 		elif int(option) == 2:
 			begin = input("Numero giorni: ")
-			if region is None:
-				show_national_report(dataset_path, begin=begin)
-			else:
-				show_regional_report(dataset_path, region, begin=begin)
+			show_report(dataset_path, region, begin=begin)
 		elif int(option) == 3:
 			end = input("Numero giorni: ")
-			if region is None:
-				show_national_report(dataset_path, end=end)
-			else:
-				show_regional_report(dataset_path, region, end=end)
+			show_report(dataset_path, region, end=end)
 		elif int(option) == 4:
 			begin = input("Giorno iniziale: ")
 			end = input("Giorno finale: ")
-			if region is None:
-				show_national_report(dataset_path, begin, end)
-			else:
-				show_regional_report(dataset_path, region, begin, end)
+			show_report(dataset_path, region, begin=begin, end=end)
 		elif int(option) == 5:
 			break
 		else:
@@ -442,6 +358,20 @@ def collect_regional_dataset(dataset, region, results):
 
 #
 #   Brief:
+#       Populates two separate lists containing regions and corresponding ratios for building up the ranking.
+#   Parameters:
+#       - n: Index of the lists where regions name and ratios shall be inserted.
+#       - regions: List containing all regions' names
+#       - ratios: List containing all regions' ratios
+#       - results: Dictionary from where ratios are retrieved.
+#
+def build_ranking_lists(n, regions, ratios, region, results):
+	regions.insert(n, region.value[1])
+	ratios.insert(n, results.get(region).tail(1).loc[:, "RAPPORTO"])
+
+
+#
+#   Brief:
 #       Shows the national daily ranking sorted by ratio values.
 #   Parameters:
 #       - dataset_path: Path pointing to the CSV file used to generate the report.
@@ -455,54 +385,15 @@ def show_national_ranking(dataset_path):
 		delayed(collect_regional_dataset)(dataset, region, results) for region in Region
 	)
 
-	ranking["REGIONE"] = [
-		"Abruzzo",
-		"Basilicata",
-		"Calabria",
-		"Campania",
-		"Emilia-Romagna",
-		"Friuli Venezia Giulia",
-		"Lazio",
-		"Liguria",
-		"Lombardia",
-		"Marche",
-		"Molise",
-		"P.A. Bolzano",
-		"P.A. Trento",
-		"Piemonte",
-		"Puglia",
-		"Sardegna",
-		"Sicilia",
-		"Toscana",
-		"Umbria",
-		"Valle d'Aosta",
-		"Veneto"
-	]
+	regions = []
+	ratios = []
 
-	ranking["RAPPORTO"] = [
-		results.get(Region.ABRUZZO).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.BASILICATA).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.CALABRIA).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.CAMPANIA).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.EMILIA_ROMAGNA).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.FRIULI_VENEZIA_GIULIA).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.LAZIO).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.LIGURIA).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.LOMBARDIA).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.MARCHE).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.MOLISE).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.PA_BOLZANO).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.PA_TRENTO).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.PIEMONTE).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.PUGLIA).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.SARDEGNA).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.SICILIA).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.TOSCANA).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.UMBRIA).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.VALLE_D_AOSTA).tail(1).loc[:, "RAPPORTO"],
-		results.get(Region.VENETO).tail(1).loc[:, "RAPPORTO"]
-	]
+	Parallel(multiprocessing.cpu_count(), require="sharedmem")(
+		delayed(build_ranking_lists)(n, regions, ratios, region, results) for n, region in enumerate(Region)
+	)
 
+	ranking["REGIONE"] = regions
+	ranking["RAPPORTO"] = ratios
 	ranking["RAPPORTO"] = ranking["RAPPORTO"].astype(float)
 	ranking.sort_values(by="RAPPORTO", ascending=False, inplace=True)
 	ranking.reset_index(drop=True, inplace=True)
