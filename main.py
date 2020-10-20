@@ -90,8 +90,7 @@ def parse_data(feed):
 #       A new dataset without the unnecessary columns.
 #
 def cleanup_data(dataset, region=None):
-	dataset = dataset.drop(columns=
-	[
+	dataset = dataset.drop(columns=[
 		"stato",
 		"ricoverati_con_sintomi",
 		"terapia_intensiva",
@@ -168,13 +167,13 @@ def elaborate_data(dataset):
 	dataset.drop(columns="tamponi", inplace=True)
 	dataset.drop(columns="casi_testati", inplace=True)
 	dataset["TAMPONI"] = list(tests)
-	dataset.rename(columns={"data" : "DATA", "nuovi_positivi" : "NUOVI POSITIVI"}, inplace=True)
+	dataset.rename(columns={"data": "DATA", "nuovi_positivi": "NUOVI POSITIVI"}, inplace=True)
 
 	ratio = [0]
 	Parallel(multiprocessing.cpu_count(), require="sharedmem")(
 		delayed(calculate_ratio)(n, dataset, ratio) for n in range(1, dataset.shape[0])
 	)
-	
+
 	dataset["RAPPORTO"] = ratio
 	dataset.drop(index=0, inplace=True)
 	return dataset
@@ -428,6 +427,21 @@ def choose_report_type(dataset_path, region=None):
 
 #
 #   Brief:
+#       Collects given regional dataset and puts it into a dictionary.
+#   Parameters:
+#       - dataset: Dataset used.
+#       - region: Region selected.
+#       - results: Dictionary where collected dataset shall be stored.
+#
+def collect_regional_dataset(dataset, region, results):
+	regional_dataset = dataset.copy()
+	regional_dataset = cleanup_data(regional_dataset, region)
+	regional_dataset = elaborate_data(regional_dataset)
+	results[region] = regional_dataset
+
+
+#
+#   Brief:
 #       Shows the national daily ranking sorted by ratio values.
 #   Parameters:
 #       - dataset_path: Path pointing to the CSV file used to generate the report.
@@ -437,11 +451,9 @@ def show_national_ranking(dataset_path):
 	results = {}
 	ranking = pandas.DataFrame()
 
-	for region in Region:
-		regional_dataset = dataset.copy()
-		regional_dataset = cleanup_data(regional_dataset, region)
-		regional_dataset = elaborate_data(regional_dataset)
-		results[region] = regional_dataset
+	Parallel(multiprocessing.cpu_count(), require="sharedmem")(
+		delayed(collect_regional_dataset)(dataset, region, results) for region in Region
+	)
 
 	ranking["REGIONE"] = [
 		"Abruzzo",
