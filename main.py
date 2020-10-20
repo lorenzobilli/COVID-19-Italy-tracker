@@ -278,24 +278,25 @@ def show_report(dataset_path, region=None, begin=None, end=None):
 	dataset = elaborate_data(dataset)
 
 	figure, report = mp.subplots(1)
-	title = "COVID-19 LINEAR REGRESSION: "
+	title = "COVID-19 - ANDAMENTO E REGRESSIONE LINEARE: "
 	if region is None:
 		title += " ITALIA"
 	else:
 		title += " REGIONE " + region.value[1].upper()
 	figure.suptitle(title)
+	mp.ylabel("Nuovi positivi (%)")
 
 	if begin is not None and end is not None:
-		report.set_title("From day " + str(begin) + " to day " + str(end))
+		report.set_title("Dal giorno " + str(begin) + " al giorno " + str(end))
 		dataset = select_data_range(dataset, int(begin), int(end))
 	elif begin is not None and end is None:
-		report.set_title("First " + str(begin) + " days")
+		report.set_title("Primi " + str(begin) + " giorni")
 		dataset = select_data_head(dataset, int(begin))
 	elif begin is None and end is not None:
-		report.set_title("Last " + str(end) + " days")
+		report.set_title("Ultimi " + str(end) + " giorni")
 		dataset = select_data_tail(dataset, int(end))
 	else:
-		report.set_title("Global report")
+		report.set_title("Report globale")
 	report.autoscale()
 	report.scatter(dataset["DATA"], dataset["RAPPORTO"])
 
