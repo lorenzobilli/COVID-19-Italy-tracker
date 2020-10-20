@@ -505,6 +505,8 @@ def show_national_ranking(dataset_path):
 
 	ranking["RAPPORTO"] = ranking["RAPPORTO"].astype(float)
 	ranking.sort_values(by="RAPPORTO", ascending=False, inplace=True)
+	ranking.reset_index(drop=True, inplace=True)
+	ranking.index += 1
 
 	print("")
 	print(tabify(ranking))
