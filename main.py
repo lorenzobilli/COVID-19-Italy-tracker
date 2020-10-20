@@ -17,7 +17,7 @@
 
 import datetime
 import sys
-from enum import IntEnum
+from enum import Enum
 from pathlib import Path
 from joblib import Parallel, delayed
 
@@ -33,28 +33,28 @@ import tabulate
 #   Brief:
 #       Enum used for regions. Integer values correspond to the internal regional ID used in the datasets.
 #
-class Region(IntEnum):
-	ABRUZZO = 13
-	BASILICATA = 17
-	CALABRIA = 18
-	CAMPANIA = 15
-	EMILIA_ROMAGNA = 8
-	FRIULI_VENEZIA_GIULIA = 6
-	LAZIO = 12
-	LIGURIA = 7
-	LOMBARDIA = 3
-	MARCHE = 11
-	MOLISE = 14
-	PA_BOLZANO = 21
-	PA_TRENTO = 22
-	PIEMONTE = 1
-	PUGLIA = 16
-	SARDEGNA = 20
-	SICILIA = 19
-	TOSCANA = 9
-	UMBRIA = 10
-	VALLE_D_AOSTA = 2
-	VENETO = 5
+class Region(Enum):
+	ABRUZZO = 13, "Abruzzo"
+	BASILICATA = 17, "Basilicata"
+	CALABRIA = 18, "Calabria"
+	CAMPANIA = 15, "Campania"
+	EMILIA_ROMAGNA = 8, "Emilia-Romagna"
+	FRIULI_VENEZIA_GIULIA = 6, "Friuli Venezia Giulia"
+	LAZIO = 12, "Lazio"
+	LIGURIA = 7, "Liguria"
+	LOMBARDIA = 3, "Lombardia"
+	MARCHE = 11, "Marche"
+	MOLISE = 14, "Molise"
+	PA_BOLZANO = 21, "P.A. Bolzano"
+	PA_TRENTO = 22, "P.A. Trento"
+	PIEMONTE = 1, "Piemonte"
+	PUGLIA = 16, "Puglia"
+	SARDEGNA = 20, "Sardegna"
+	SICILIA = 19, "Sicilia"
+	TOSCANA = 9, "Toscana"
+	UMBRIA = 10, "Umbria"
+	VALLE_D_AOSTA = 2, "Valle d'Aosta"
+	VENETO = 5, "Veneto"
 
 
 #
@@ -106,7 +106,7 @@ def cleanup_data(dataset, region=None):
 		"note"
 	])
 	if region is not None:
-		dataset.drop(dataset[dataset["codice_regione"] != Region(region)].index, inplace=True)
+		dataset.drop(dataset[dataset["codice_regione"] != region.value[0]].index, inplace=True)
 		dataset.reset_index(drop=True, inplace=True)
 		dataset = dataset.drop(columns=["codice_regione", "denominazione_regione", "lat", "long"])
 	return dataset
