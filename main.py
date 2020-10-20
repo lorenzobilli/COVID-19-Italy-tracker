@@ -20,6 +20,7 @@ import sys
 from enum import Enum
 from pathlib import Path
 from joblib import Parallel, delayed
+from colorama import Fore, Style
 
 import multiprocessing
 import matplotlib.pyplot as mp
@@ -408,7 +409,7 @@ def show_national_ranking(dataset_path):
 #       Prints a formatted welcome splash screen.
 #
 def print_splashscreen():
-	print("")
+	print(Fore.LIGHTGREEN_EX + "")
 	print(" / ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \\")
 	print("|  /~~\\                                                               /~~\\  |")
 	print("|\\ \\   |           ____ _____     _____ ____        _  ___           |   / /|")
@@ -427,7 +428,7 @@ def print_splashscreen():
 	print(" \\     |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|     /")
 	print("  \\   /                                                               \\   /")
 	print("   ~~~                                                                 ~~~")
-	print("")
+	print(Style.RESET_ALL + "")
 
 
 #
