@@ -59,9 +59,14 @@ class Region(Enum):
 
 #
 #   Brief:
-#       Lambda expression to quickly tabulate ready-to-be-printed data.
+#       Quickly tabulates ready-to-be-printed data.
+#   Parameters:
+#       - dataframe: Data to be tabulated.
+#   Returns:
+#       Formatted data in tabular, printable form.
 #
-tabify = lambda dataframe: tabulate.tabulate(dataframe, headers="keys", tablefmt="psql")
+def tabify(dataframe):
+	return tabulate.tabulate(dataframe, headers="keys", tablefmt="psql")
 
 
 #
