@@ -314,48 +314,9 @@ def show_regional_report(dataset_path, region, begin=None, end=None):
 	dataset = elaborate_data(dataset)
 
 	figure, report = mp.subplots(1)
-	title = "COVID-19 LINEAR REGRESSION: "
-	if region == Region.ABRUZZO:
-		title += "REGIONE ABRUZZO"
-	elif region == Region.BASILICATA:
-		title += "REGIONE BASILICATA"
-	elif region == Region.CALABRIA:
-		title += "REGIONE CALABRIA"
-	elif region == Region.CAMPANIA:
-		title += "REGIONE CAMPANIA"
-	elif region == Region.EMILIA_ROMAGNA:
-		title += "REGIONE EMILIA-ROMAGNA"
-	elif region == Region.FRIULI_VENEZIA_GIULIA:
-		title += "REGIONE FRIULI-VENEZIA GIULIA"
-	elif region == Region.LAZIO:
-		title += "REGIONE LAZIO"
-	elif region == Region.LIGURIA:
-		title += "REGIONE LIGURIA"
-	elif region == Region.LOMBARDIA:
-		title += "REGIONE LOMBARDIA"
-	elif region == Region.MARCHE:
-		title += "REGIONE MARCHE"
-	elif region == Region.MOLISE:
-		title += "REGIONE MOLISE"
-	elif region == Region.PA_BOLZANO:
-		title += "P.A. BOLZANO"
-	elif region == Region.PA_TRENTO:
-		title += "P.A. TRENTO"
-	elif region == Region.PIEMONTE:
-		title += "REGIONE PIEMENTE"
-	elif region == Region.PUGLIA:
-		title += "REGIONE PUGLIA"
-	elif region == Region.SARDEGNA:
-		title += "REGIONE SARDEGNA"
-	elif region == Region.SICILIA:
-		title += "REGIONE SICILIA"
-	elif region == Region.TOSCANA:
-		title += "REGIONE TOSCANA"
-	elif region == Region.UMBRIA:
-		title += "REGIONE VALLE D'AOSTA"
-	elif region == Region.VENETO:
-		title += "REGIONE VENETO"
+	title = "COVID-19 LINEAR REGRESSION: REGIONE " + region.value[1].upper()
 	figure.suptitle(title)
+
 	if begin is not None and end is not None:
 		report.set_title("From day " + str(begin) + " to day " + str(end))
 		dataset = select_data_range(dataset, int(begin), int(end))
