@@ -19,12 +19,15 @@ import datetime
 import sys
 from enum import IntEnum
 from pathlib import Path
+from joblib import Parallel, delayed
 
+import multiprocessing
 import matplotlib.pyplot as mp
 import numpy
 import pandas
 from sklearn.linear_model import LinearRegression
 import tabulate
+
 
 #
 #   Brief:
@@ -87,8 +90,7 @@ def parse_data(feed):
 #       A new dataset without the unnecessary columns.
 #
 def cleanup_data(dataset, region=None):
-	dataset = dataset.drop(columns=
-	[
+	dataset = dataset.drop(columns=[
 		"stato",
 		"ricoverati_con_sintomi",
 		"terapia_intensiva",
@@ -112,6 +114,36 @@ def cleanup_data(dataset, region=None):
 
 #
 #   Brief:
+#       Calculates deltas between tests from current and previous day.
+#   Parameters:
+#       - n: Index of the list where the calculated result shall be inserted.
+#       - dataset: Dataset from where data is retrieved.
+#       - tests: List which shall contain calculated results.
+#
+def calculate_tests_delta(n, dataset, tests):
+	if numpy.isnan(dataset.at[n - 1, "casi_testati"]):
+		tests.insert(n, dataset.at[n, "tamponi"] - dataset.at[n - 1, "tamponi"])
+	else:
+		tests.insert(n, dataset.at[n, "casi_testati"] - dataset.at[n - 1, "casi_testati"])
+
+
+#
+#   Brief:
+#       Calculates ratio between new positive cases and new tests.
+#   Parameters:
+#       - n: Index of the list where the calculated result shall be inserted.
+#       - dataset: Dataset from where data is retrieved.
+#       - ratio: List which shall contain calculated results.
+#
+def calculate_ratio(n, dataset, ratio):
+	if dataset.at[n, "TAMPONI"] != 0:
+		ratio.insert(n, dataset.at[n, "NUOVI POSITIVI"] / dataset.at[n, "TAMPONI"] * 100)
+	else:
+		ratio.insert(n, 0)
+
+
+#
+#   Brief:
 #       Enriches data with new columns with data used to analyze trends, and renames existing ones to a known,
 #       standardized string format.
 #   Detailed description:
@@ -128,22 +160,20 @@ def cleanup_data(dataset, region=None):
 #
 def elaborate_data(dataset):
 	tests = [0]
-	for n in range(1, dataset.shape[0]):
-		if numpy.isnan(dataset.at[n - 1, "casi_testati"]):
-			tests.append(dataset.at[n, "tamponi"] - dataset.at[n - 1, "tamponi"])
-		else:
-			tests.append(dataset.at[n, "casi_testati"] - dataset.at[n - 1, "casi_testati"])
+	Parallel(multiprocessing.cpu_count(), require="sharedmem")(
+		delayed(calculate_tests_delta)(n, dataset, tests) for n in range(1, dataset.shape[0])
+	)
+
 	dataset.drop(columns="tamponi", inplace=True)
 	dataset.drop(columns="casi_testati", inplace=True)
-	dataset["TAMPONI"] = tests
-	dataset.rename(columns={"data" : "DATA", "nuovi_positivi" : "NUOVI POSITIVI"}, inplace=True)
+	dataset["TAMPONI"] = list(tests)
+	dataset.rename(columns={"data": "DATA", "nuovi_positivi": "NUOVI POSITIVI"}, inplace=True)
+
 	ratio = [0]
-	for n in range(1, dataset.shape[0]):
-		# Makes sure we're not dividing by 0 in case no tests are registered.
-		if dataset.at[n, "TAMPONI"] != 0:
-			ratio.append(dataset.at[n, "NUOVI POSITIVI"] / dataset.at[n, "TAMPONI"] * 100)
-		else:
-			ratio.append(0)
+	Parallel(multiprocessing.cpu_count(), require="sharedmem")(
+		delayed(calculate_ratio)(n, dataset, ratio) for n in range(1, dataset.shape[0])
+	)
+
 	dataset["RAPPORTO"] = ratio
 	dataset.drop(index=0, inplace=True)
 	return dataset
@@ -218,7 +248,7 @@ def predict_data(dataset):
 	dataset["DATA"] = dataset["DATA"].map(datetime.datetime.toordinal)
 	x = dataset["DATA"].to_numpy().reshape(-1, 1)
 	y = dataset["RAPPORTO"].to_numpy().reshape(-1, 1)
-	linear_regressor = LinearRegression()
+	linear_regressor = LinearRegression(n_jobs=multiprocessing.cpu_count())
 	linear_regressor.fit(x, y)
 	predictor = linear_regressor.predict(x)
 	return predictor
@@ -397,6 +427,21 @@ def choose_report_type(dataset_path, region=None):
 
 #
 #   Brief:
+#       Collects given regional dataset and puts it into a dictionary.
+#   Parameters:
+#       - dataset: Dataset used.
+#       - region: Region selected.
+#       - results: Dictionary where collected dataset shall be stored.
+#
+def collect_regional_dataset(dataset, region, results):
+	regional_dataset = dataset.copy()
+	regional_dataset = cleanup_data(regional_dataset, region)
+	regional_dataset = elaborate_data(regional_dataset)
+	results[region] = regional_dataset
+
+
+#
+#   Brief:
 #       Shows the national daily ranking sorted by ratio values.
 #   Parameters:
 #       - dataset_path: Path pointing to the CSV file used to generate the report.
@@ -406,11 +451,9 @@ def show_national_ranking(dataset_path):
 	results = {}
 	ranking = pandas.DataFrame()
 
-	for region in Region:
-		regional_dataset = dataset.copy()
-		regional_dataset = cleanup_data(regional_dataset, region)
-		regional_dataset = elaborate_data(regional_dataset)
-		results[region] = regional_dataset
+	Parallel(multiprocessing.cpu_count(), require="sharedmem")(
+		delayed(collect_regional_dataset)(dataset, region, results) for region in Region
+	)
 
 	ranking["REGIONE"] = [
 		"Abruzzo",
