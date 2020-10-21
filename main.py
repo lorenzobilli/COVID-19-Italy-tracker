@@ -128,9 +128,9 @@ def cleanup_data(dataset, region=None):
 #
 def calculate_tests_delta(n, dataset, tests):
 	if numpy.isnan(dataset.at[n - 1, "casi_testati"]):
-		tests.insert(n, dataset.at[n, "tamponi"] - dataset.at[n - 1, "tamponi"])
+		return dataset.at[n, "tamponi"] - dataset.at[n - 1, "tamponi"]
 	else:
-		tests.insert(n, dataset.at[n, "casi_testati"] - dataset.at[n - 1, "casi_testati"])
+		return dataset.at[n, "casi_testati"] - dataset.at[n - 1, "casi_testati"]
 
 
 #
@@ -143,9 +143,9 @@ def calculate_tests_delta(n, dataset, tests):
 #
 def calculate_ratio(n, dataset, ratio):
 	if dataset.at[n, "TAMPONI"] != 0:
-		ratio.insert(n, dataset.at[n, "NUOVI POSITIVI"] / dataset.at[n, "TAMPONI"] * 100)
+		return dataset.at[n, "NUOVI POSITIVI"] / dataset.at[n, "TAMPONI"] * 100
 	else:
-		ratio.insert(n, 0)
+		return 0
 
 
 #
@@ -166,9 +166,10 @@ def calculate_ratio(n, dataset, ratio):
 #
 def elaborate_data(dataset):
 	tests = [0]
-	Parallel(multiprocessing.cpu_count(), require="sharedmem")(
+	tests = Parallel(multiprocessing.cpu_count())(
 		delayed(calculate_tests_delta)(n, dataset, tests) for n in range(1, dataset.shape[0])
 	)
+	tests.insert(0, 0)
 
 	dataset.drop(columns="tamponi", inplace=True)
 	dataset.drop(columns="casi_testati", inplace=True)
@@ -176,9 +177,10 @@ def elaborate_data(dataset):
 	dataset.rename(columns={"data": "DATA", "nuovi_positivi": "NUOVI POSITIVI"}, inplace=True)
 
 	ratio = [0]
-	Parallel(multiprocessing.cpu_count(), require="sharedmem")(
+	ratio = Parallel(multiprocessing.cpu_count())(
 		delayed(calculate_ratio)(n, dataset, ratio) for n in range(1, dataset.shape[0])
 	)
+	ratio.insert(0, 0)
 
 	dataset["RAPPORTO"] = ratio
 	dataset.drop(index=0, inplace=True)
