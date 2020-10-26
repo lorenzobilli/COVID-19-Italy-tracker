@@ -142,10 +142,10 @@ def calculate_tests_delta(n, dataset, tests):
 #       - ratio: List which shall contain calculated results.
 #
 def calculate_ratio(n, dataset, ratio):
-	if dataset.at[n, "TAMPONI"] != 0:
-		return dataset.at[n, "NUOVI POSITIVI"] / dataset.at[n, "TAMPONI"] * 100
-	else:
+	if (dataset.at[n, "TAMPONI"] == 0) or (dataset.at[n, "NUOVI POSITIVI"] > dataset.at[n, "TAMPONI"]):
 		return 0
+	else:
+		return dataset.at[n, "NUOVI POSITIVI"] / dataset.at[n, "TAMPONI"] * 100
 
 
 #
