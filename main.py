@@ -307,7 +307,16 @@ def show_report(dataset_path, region=None, begin=None, end=None):
 
 	print("")
 	print(tabify(dataset))
-	mp.show()
+
+	print("")
+	print("1) Mostra grafico regressione lineare")
+	print("2) Indietro")
+	option = input(">: ")
+
+	if int(option) == 1:
+		mp.show()
+	else:
+		return
 
 
 #
