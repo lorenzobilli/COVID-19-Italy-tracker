@@ -99,13 +99,11 @@ def cleanup_data(dataset, region=None):
 	dataset = dataset.drop(columns=[
 		"stato",
 		"ricoverati_con_sintomi",
-		"terapia_intensiva",
 		"totale_ospedalizzati",
 		"isolamento_domiciliare",
 		"totale_positivi",
 		"variazione_totale_positivi",
 		"dimessi_guariti",
-		"deceduti",
 		"casi_da_sospetto_diagnostico",
 		"casi_da_screening",
 		"totale_casi",
@@ -148,6 +146,15 @@ def calculate_ratio(n, dataset, ratio):
 		return dataset.at[n, "NUOVI POSITIVI"] / dataset.at[n, "CASI TESTATI"] * 100
 
 
+def calculate_deaths(n, dataset, deaths):
+	delta = dataset.at[n, "MORTI"] - dataset.at[n - 1, "MORTI"]
+	if delta >= 0:
+		return delta
+	else:
+		return 0
+
+
+
 #
 #   Brief:
 #       Enriches data with new columns with data used to analyze trends, and renames existing ones to a known,
@@ -174,7 +181,11 @@ def elaborate_data(dataset):
 	dataset.drop(columns="tamponi", inplace=True)
 	dataset.drop(columns="casi_testati", inplace=True)
 	dataset["CASI TESTATI"] = list(tests)
-	dataset.rename(columns={"data": "DATA", "nuovi_positivi": "NUOVI POSITIVI"}, inplace=True)
+	dataset.rename(columns={"data": "DATA",
+	                        "nuovi_positivi": "NUOVI POSITIVI",
+	                        "terapia_intensiva": "T.I.",
+	                        "deceduti": "MORTI"},
+	               inplace=True)
 
 	ratio = [0]
 	ratio = Parallel(multiprocessing.cpu_count())(
@@ -182,7 +193,16 @@ def elaborate_data(dataset):
 	)
 	ratio.insert(0, 0)
 
+	deaths = [0]
+	deaths = Parallel(multiprocessing.cpu_count())(
+		delayed(calculate_deaths)(n, dataset, deaths) for n in range(1, dataset.shape[0])
+	)
+	deaths.insert(0, 0)
+
 	dataset["RAPPORTO"] = ratio
+	dataset["MORTI GIORNALIERI"] = deaths
+	# Reordering dataset
+	dataset = dataset.loc[:, ["DATA", "NUOVI POSITIVI", "CASI TESTATI", "RAPPORTO", "T.I.", "MORTI", "MORTI GIORNALIERI"]]
 	dataset.drop(index=0, inplace=True)
 	return dataset
 
