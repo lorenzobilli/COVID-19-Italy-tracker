@@ -32,6 +32,13 @@ import tabulate
 
 #
 #   Brief:
+#       Number of processes used by the parallelized sections of the program.
+#
+cpus = multiprocessing.cpu_count()
+
+
+#
+#   Brief:
 #       Enum used for regions. Integer values correspond to the internal regional ID used in the datasets.
 #
 class Region(Enum):
@@ -99,13 +106,11 @@ def cleanup_data(dataset, region=None):
 	dataset = dataset.drop(columns=[
 		"stato",
 		"ricoverati_con_sintomi",
-		"terapia_intensiva",
 		"totale_ospedalizzati",
 		"isolamento_domiciliare",
 		"totale_positivi",
 		"variazione_totale_positivi",
 		"dimessi_guariti",
-		"deceduti",
 		"casi_da_sospetto_diagnostico",
 		"casi_da_screening",
 		"totale_casi",
@@ -142,10 +147,26 @@ def calculate_tests_delta(n, dataset, tests):
 #       - ratio: List which shall contain calculated results.
 #
 def calculate_ratio(n, dataset, ratio):
-	if (dataset.at[n, "TAMPONI"] == 0) or (dataset.at[n, "NUOVI POSITIVI"] > dataset.at[n, "TAMPONI"]):
+	if (dataset.at[n, "testati"] == 0) or (dataset.at[n, "nuovi_positivi"] > dataset.at[n, "testati"]):
 		return 0
 	else:
-		return dataset.at[n, "NUOVI POSITIVI"] / dataset.at[n, "TAMPONI"] * 100
+		return dataset.at[n, "nuovi_positivi"] / dataset.at[n, "testati"] * 100
+
+
+#
+#   Brief:
+#       Calculates deltas between deaths from current and previous day.
+#   Parameters:
+#       - n: Index of the list where the calculated result shall be inserted.
+#       - dataset: Dataset from where data is retrieved.
+#       - ratio: List which shall contain calculated results.
+#
+def calculate_deaths(n, dataset, deaths):
+	delta = dataset.at[n, "deceduti"] - dataset.at[n - 1, "deceduti"]
+	if delta >= 0:
+		return delta
+	else:
+		return 0
 
 
 #
@@ -166,23 +187,35 @@ def calculate_ratio(n, dataset, ratio):
 #
 def elaborate_data(dataset):
 	tests = [0]
-	tests = Parallel(multiprocessing.cpu_count())(
+	tests = Parallel(cpus)(
 		delayed(calculate_tests_delta)(n, dataset, tests) for n in range(1, dataset.shape[0])
 	)
 	tests.insert(0, 0)
-
-	dataset.drop(columns="tamponi", inplace=True)
-	dataset.drop(columns="casi_testati", inplace=True)
-	dataset["TAMPONI"] = list(tests)
-	dataset.rename(columns={"data": "DATA", "nuovi_positivi": "NUOVI POSITIVI"}, inplace=True)
+	dataset["testati"] = list(tests)
 
 	ratio = [0]
-	ratio = Parallel(multiprocessing.cpu_count())(
+	ratio = Parallel(cpus)(
 		delayed(calculate_ratio)(n, dataset, ratio) for n in range(1, dataset.shape[0])
 	)
 	ratio.insert(0, 0)
+	dataset["rapporto"] = ratio
 
-	dataset["RAPPORTO"] = ratio
+	deaths = [0]
+	deaths = Parallel(cpus)(
+		delayed(calculate_deaths)(n, dataset, deaths) for n in range(1, dataset.shape[0])
+	)
+	deaths.insert(0, 0)
+	dataset["morti"] = deaths
+
+	# Removing unneeded columns
+	dataset.drop(columns={"tamponi", "casi_testati", "deceduti"}, inplace=True)
+
+	# Renaming resulting columns
+	dataset.rename(columns={"data": "DATA", "nuovi_positivi": "POSITIVI", "testati": "TESTATI", "rapporto": "RAPPORTO",
+	                        "terapia_intensiva": "T.I.", "morti": "MORTI"}, inplace=True)
+
+	# Reordering dataset
+	dataset = dataset.loc[:, ["DATA", "POSITIVI", "TESTATI", "RAPPORTO", "T.I.", "MORTI"]]
 	dataset.drop(index=0, inplace=True)
 	return dataset
 
@@ -307,7 +340,16 @@ def show_report(dataset_path, region=None, begin=None, end=None):
 
 	print("")
 	print(tabify(dataset))
-	mp.show()
+
+	print("")
+	print("1) Mostra grafico regressione lineare")
+	print("2) Indietro")
+	option = input(">: ")
+
+	if int(option) == 1:
+		mp.show()
+	else:
+		return
 
 
 #
@@ -385,14 +427,14 @@ def show_national_ranking(dataset_path):
 	results = {}
 	ranking = pandas.DataFrame()
 
-	Parallel(multiprocessing.cpu_count(), require="sharedmem")(
+	Parallel(cpus, require="sharedmem")(
 		delayed(collect_regional_dataset)(dataset, region, results) for region in Region
 	)
 
 	regions = []
 	ratios = []
 
-	Parallel(multiprocessing.cpu_count(), require="sharedmem")(
+	Parallel(cpus, require="sharedmem")(
 		delayed(build_ranking_lists)(n, regions, ratios, region, results) for n, region in enumerate(Region)
 	)
 
