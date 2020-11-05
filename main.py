@@ -150,7 +150,7 @@ def calculate_ratio(n, dataset, ratio):
 	if (dataset.at[n, "testati"] == 0) or (dataset.at[n, "nuovi_positivi"] > dataset.at[n, "testati"]):
 		return 0
 	else:
-		return dataset.at[n, "nuovi_positivi"] / dataset.at[n, "testati"] * 100
+		return round(dataset.at[n, "nuovi_positivi"] / dataset.at[n, "testati"] * 100, 2)
 
 
 #
