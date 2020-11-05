@@ -74,7 +74,7 @@ class Region(Enum):
 #       Formatted data in tabular, printable form.
 #
 def tabify(dataframe):
-	return tabulate.tabulate(dataframe, headers="keys", tablefmt="psql")
+	return tabulate.tabulate(dataframe, headers="keys", tablefmt="pretty", numalign="center", stralign="center")
 
 
 #
@@ -103,23 +103,14 @@ def parse_data(feed):
 #       A new dataset without the unnecessary columns.
 #
 def cleanup_data(dataset, region=None):
-	dataset = dataset.drop(columns=[
-		"stato",
-		"ricoverati_con_sintomi",
-		"totale_ospedalizzati",
-		"isolamento_domiciliare",
-		"totale_positivi",
-		"variazione_totale_positivi",
-		"dimessi_guariti",
-		"casi_da_sospetto_diagnostico",
-		"casi_da_screening",
-		"totale_casi",
-		"note"
-	])
+	dataset.drop(columns=["stato", "ricoverati_con_sintomi", "totale_ospedalizzati",
+	                      "isolamento_domiciliare", "totale_positivi", "variazione_totale_positivi",
+	                      "dimessi_guariti", "casi_da_sospetto_diagnostico", "casi_da_screening",
+	                      "totale_casi", "note"], inplace=True)
 	if region is not None:
 		dataset.drop(dataset[dataset["codice_regione"] != region.value[0]].index, inplace=True)
+		dataset.drop(columns=["codice_regione", "denominazione_regione", "lat", "long"], inplace=True)
 		dataset.reset_index(drop=True, inplace=True)
-		dataset = dataset.drop(columns=["codice_regione", "denominazione_regione", "lat", "long"])
 	return dataset
 
 
@@ -133,9 +124,9 @@ def cleanup_data(dataset, region=None):
 #
 def calculate_tests_delta(n, dataset, tests):
 	if numpy.isnan(dataset.at[n - 1, "casi_testati"]):
-		return dataset.at[n, "tamponi"] - dataset.at[n - 1, "tamponi"]
+		return int(dataset.at[n, "tamponi"] - dataset.at[n - 1, "tamponi"])
 	else:
-		return dataset.at[n, "casi_testati"] - dataset.at[n - 1, "casi_testati"]
+		return int(dataset.at[n, "casi_testati"] - dataset.at[n - 1, "casi_testati"])
 
 
 #
@@ -150,7 +141,7 @@ def calculate_ratio(n, dataset, ratio):
 	if (dataset.at[n, "testati"] == 0) or (dataset.at[n, "nuovi_positivi"] > dataset.at[n, "testati"]):
 		return 0
 	else:
-		return dataset.at[n, "nuovi_positivi"] / dataset.at[n, "testati"] * 100
+		return round(dataset.at[n, "nuovi_positivi"] / dataset.at[n, "testati"] * 100, 2)
 
 
 #
@@ -164,7 +155,7 @@ def calculate_ratio(n, dataset, ratio):
 def calculate_deaths(n, dataset, deaths):
 	delta = dataset.at[n, "deceduti"] - dataset.at[n - 1, "deceduti"]
 	if delta >= 0:
-		return delta
+		return int(delta)
 	else:
 		return 0
 
