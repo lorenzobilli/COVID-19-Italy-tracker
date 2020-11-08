@@ -17,11 +17,9 @@
 
 import datetime
 import sys
-from enum import Enum
 from pathlib import Path
 from joblib import Parallel, delayed
 from colorama import Fore, Style
-
 import multiprocessing
 import matplotlib.pyplot as mp
 import numpy
@@ -29,40 +27,14 @@ import pandas
 from sklearn.linear_model import LinearRegression
 import tabulate
 
+from Region import *
+
 
 #
 #   Brief:
 #       Number of processes used by the parallelized sections of the program.
 #
 cpus = multiprocessing.cpu_count()
-
-
-#
-#   Brief:
-#       Enum used for regions. Integer values correspond to the internal regional ID used in the datasets.
-#
-class Region(Enum):
-	ABRUZZO = 13, "Abruzzo"
-	BASILICATA = 17, "Basilicata"
-	CALABRIA = 18, "Calabria"
-	CAMPANIA = 15, "Campania"
-	EMILIA_ROMAGNA = 8, "Emilia-Romagna"
-	FRIULI_VENEZIA_GIULIA = 6, "Friuli Venezia Giulia"
-	LAZIO = 12, "Lazio"
-	LIGURIA = 7, "Liguria"
-	LOMBARDIA = 3, "Lombardia"
-	MARCHE = 11, "Marche"
-	MOLISE = 14, "Molise"
-	PA_BOLZANO = 21, "P.A. Bolzano"
-	PA_TRENTO = 22, "P.A. Trento"
-	PIEMONTE = 1, "Piemonte"
-	PUGLIA = 16, "Puglia"
-	SARDEGNA = 20, "Sardegna"
-	SICILIA = 19, "Sicilia"
-	TOSCANA = 9, "Toscana"
-	UMBRIA = 10, "Umbria"
-	VALLE_D_AOSTA = 2, "Valle d'Aosta"
-	VENETO = 5, "Veneto"
 
 
 #
