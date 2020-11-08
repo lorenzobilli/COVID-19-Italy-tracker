@@ -20,33 +20,13 @@ import sys
 from pathlib import Path
 from joblib import Parallel, delayed
 from colorama import Fore, Style
-import multiprocessing
 import matplotlib.pyplot as mp
 import numpy
 import pandas
 from sklearn.linear_model import LinearRegression
-import tabulate
 
 from Region import *
-
-
-#
-#   Brief:
-#       Number of processes used by the parallelized sections of the program.
-#
-cpus = multiprocessing.cpu_count()
-
-
-#
-#   Brief:
-#       Quickly tabulates ready-to-be-printed data.
-#   Parameters:
-#       - dataframe: Data to be tabulated.
-#   Returns:
-#       Formatted data in tabular, printable form.
-#
-def tabify(dataframe):
-	return tabulate.tabulate(dataframe, headers="keys", tablefmt="pretty", numalign="center", stralign="center")
+from utils import *
 
 
 #
