@@ -116,11 +116,7 @@ def calculate_deaths_delta(n, dataset, deaths):
 #       - ratio: List which shall contain calculated results.
 #
 def calculate_icu_delta(n, dataset, icus):
-	delta = dataset.at[n, "terapia_intensiva"] - dataset.at[n - 1, "terapia_intensiva"]
-	if delta >= 0:
-		return int(delta)
-	else:
-		return 0
+	return int(dataset.at[n, "terapia_intensiva"] - dataset.at[n - 1, "terapia_intensiva"])
 
 
 #
