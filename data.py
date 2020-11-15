@@ -51,7 +51,7 @@ def parse_data(feed):
 #
 def cleanup_data(dataset, region=None):
 	dataset.drop(columns=["stato", "ricoverati_con_sintomi", "totale_ospedalizzati",
-	                      "isolamento_domiciliare", "totale_positivi", "variazione_totale_positivi",
+	                      "isolamento_domiciliare", "totale_positivi", "nuovi_positivi",
 	                      "dimessi_guariti", "casi_da_sospetto_diagnostico", "casi_da_screening",
 	                      "totale_casi", "note"], inplace=True)
 	if region is not None:
@@ -67,9 +67,8 @@ def cleanup_data(dataset, region=None):
 #   Parameters:
 #       - n: Index of the list where the calculated result shall be inserted.
 #       - dataset: Dataset from where data is retrieved.
-#       - tests: List which shall contain calculated results.
 #
-def calculate_tests_delta(n, dataset, tests):
+def calculate_tests_delta(n, dataset):
 	if numpy.isnan(dataset.at[n - 1, "casi_testati"]):
 		return int(dataset.at[n, "tamponi"] - dataset.at[n - 1, "tamponi"])
 	else:
@@ -82,13 +81,12 @@ def calculate_tests_delta(n, dataset, tests):
 #   Parameters:
 #       - n: Index of the list where the calculated result shall be inserted.
 #       - dataset: Dataset from where data is retrieved.
-#       - ratio: List which shall contain calculated results.
 #
-def calculate_ratio(n, dataset, ratio):
-	if (dataset.at[n, "testati"] == 0) or (dataset.at[n, "nuovi_positivi"] > dataset.at[n, "testati"]):
+def calculate_ratio(n, dataset):
+	if (dataset.at[n, "testati"] == 0) or (dataset.at[n, "variazione_totale_positivi"] > dataset.at[n, "testati"]):
 		return 0
 	else:
-		return round(dataset.at[n, "nuovi_positivi"] / dataset.at[n, "testati"] * 100, 2)
+		return round(dataset.at[n, "variazione_totale_positivi"] / dataset.at[n, "testati"] * 100, 2)
 
 
 #
@@ -97,9 +95,8 @@ def calculate_ratio(n, dataset, ratio):
 #   Parameters:
 #       - n: Index of the list where the calculated result shall be inserted.
 #       - dataset: Dataset from where data is retrieved.
-#       - ratio: List which shall contain calculated results.
 #
-def calculate_deaths_delta(n, dataset, deaths):
+def calculate_deaths_delta(n, dataset):
 	delta = dataset.at[n, "deceduti"] - dataset.at[n - 1, "deceduti"]
 	if delta >= 0:
 		return int(delta)
@@ -113,14 +110,9 @@ def calculate_deaths_delta(n, dataset, deaths):
 #   Parameters:
 #       - n: Index of the list where the calculated result shall be inserted.
 #       - dataset: Dataset from where data is retrieved.
-#       - ratio: List which shall contain calculated results.
 #
-def calculate_icu_delta(n, dataset, icus):
-	delta = dataset.at[n, "terapia_intensiva"] - dataset.at[n - 1, "terapia_intensiva"]
-	if delta >= 0:
-		return int(delta)
-	else:
-		return 0
+def calculate_icu_delta(n, dataset):
+	return int(dataset.at[n, "terapia_intensiva"] - dataset.at[n - 1, "terapia_intensiva"])
 
 
 #
@@ -140,30 +132,26 @@ def calculate_icu_delta(n, dataset, icus):
 #       A new dataset with all the new data required.
 #
 def elaborate_data(dataset):
-	tests = [0]
 	tests = Parallel(cpus)(
-		delayed(calculate_tests_delta)(n, dataset, tests) for n in range(1, dataset.shape[0])
+		delayed(calculate_tests_delta)(n, dataset) for n in range(1, dataset.shape[0])
 	)
 	tests.insert(0, 0)
 	dataset["testati"] = list(tests)
 
-	ratio = [0]
 	ratio = Parallel(cpus)(
-		delayed(calculate_ratio)(n, dataset, ratio) for n in range(1, dataset.shape[0])
+		delayed(calculate_ratio)(n, dataset) for n in range(1, dataset.shape[0])
 	)
 	ratio.insert(0, 0)
 	dataset["rapporto"] = ratio
 
-	deaths = [0]
 	deaths = Parallel(cpus)(
-		delayed(calculate_deaths_delta)(n, dataset, deaths) for n in range(1, dataset.shape[0])
+		delayed(calculate_deaths_delta)(n, dataset) for n in range(1, dataset.shape[0])
 	)
 	deaths.insert(0, 0)
 	dataset["morti"] = deaths
 
-	icus = [0]
 	icus = Parallel(cpus)(
-		delayed(calculate_icu_delta)(n, dataset, icus) for n in range(1, dataset.shape[0])
+		delayed(calculate_icu_delta)(n, dataset) for n in range(1, dataset.shape[0])
 	)
 	icus.insert(0, 0)
 	dataset["terapia_intensiva_diff"] = icus
@@ -172,8 +160,8 @@ def elaborate_data(dataset):
 	dataset.drop(columns={"tamponi", "casi_testati", "deceduti"}, inplace=True)
 
 	# Renaming resulting columns
-	dataset.rename(columns={"data": "DATA", "nuovi_positivi": "POSITIVI", "testati": "TESTATI", "rapporto": "RAPPORTO",
-	                        "terapia_intensiva": "T.I.", "terapia_intensiva_diff": "DIFF.",
+	dataset.rename(columns={"data": "DATA", "variazione_totale_positivi": "POSITIVI", "testati": "TESTATI",
+	                        "rapporto": "RAPPORTO", "terapia_intensiva": "T.I.", "terapia_intensiva_diff": "DIFF.",
 	                        "morti": "MORTI"}, inplace=True)
 
 	# Reordering dataset
