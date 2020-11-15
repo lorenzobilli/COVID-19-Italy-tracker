@@ -132,30 +132,26 @@ def calculate_icu_delta(n, dataset):
 #       A new dataset with all the new data required.
 #
 def elaborate_data(dataset):
-	tests = [0]
 	tests = Parallel(cpus)(
-		delayed(calculate_tests_delta)(n, dataset, tests) for n in range(1, dataset.shape[0])
+		delayed(calculate_tests_delta)(n, dataset) for n in range(1, dataset.shape[0])
 	)
 	tests.insert(0, 0)
 	dataset["testati"] = list(tests)
 
-	ratio = [0]
 	ratio = Parallel(cpus)(
-		delayed(calculate_ratio)(n, dataset, ratio) for n in range(1, dataset.shape[0])
+		delayed(calculate_ratio)(n, dataset) for n in range(1, dataset.shape[0])
 	)
 	ratio.insert(0, 0)
 	dataset["rapporto"] = ratio
 
-	deaths = [0]
 	deaths = Parallel(cpus)(
-		delayed(calculate_deaths_delta)(n, dataset, deaths) for n in range(1, dataset.shape[0])
+		delayed(calculate_deaths_delta)(n, dataset) for n in range(1, dataset.shape[0])
 	)
 	deaths.insert(0, 0)
 	dataset["morti"] = deaths
 
-	icus = [0]
 	icus = Parallel(cpus)(
-		delayed(calculate_icu_delta)(n, dataset, icus) for n in range(1, dataset.shape[0])
+		delayed(calculate_icu_delta)(n, dataset) for n in range(1, dataset.shape[0])
 	)
 	icus.insert(0, 0)
 	dataset["terapia_intensiva_diff"] = icus
