@@ -67,9 +67,8 @@ def cleanup_data(dataset, region=None):
 #   Parameters:
 #       - n: Index of the list where the calculated result shall be inserted.
 #       - dataset: Dataset from where data is retrieved.
-#       - tests: List which shall contain calculated results.
 #
-def calculate_tests_delta(n, dataset, tests):
+def calculate_tests_delta(n, dataset):
 	if numpy.isnan(dataset.at[n - 1, "casi_testati"]):
 		return int(dataset.at[n, "tamponi"] - dataset.at[n - 1, "tamponi"])
 	else:
@@ -82,9 +81,8 @@ def calculate_tests_delta(n, dataset, tests):
 #   Parameters:
 #       - n: Index of the list where the calculated result shall be inserted.
 #       - dataset: Dataset from where data is retrieved.
-#       - ratio: List which shall contain calculated results.
 #
-def calculate_ratio(n, dataset, ratio):
+def calculate_ratio(n, dataset):
 	if (dataset.at[n, "testati"] == 0) or (dataset.at[n, "variazione_totale_positivi"] > dataset.at[n, "testati"]):
 		return 0
 	else:
@@ -97,9 +95,8 @@ def calculate_ratio(n, dataset, ratio):
 #   Parameters:
 #       - n: Index of the list where the calculated result shall be inserted.
 #       - dataset: Dataset from where data is retrieved.
-#       - ratio: List which shall contain calculated results.
 #
-def calculate_deaths_delta(n, dataset, deaths):
+def calculate_deaths_delta(n, dataset):
 	delta = dataset.at[n, "deceduti"] - dataset.at[n - 1, "deceduti"]
 	if delta >= 0:
 		return int(delta)
@@ -113,9 +110,8 @@ def calculate_deaths_delta(n, dataset, deaths):
 #   Parameters:
 #       - n: Index of the list where the calculated result shall be inserted.
 #       - dataset: Dataset from where data is retrieved.
-#       - ratio: List which shall contain calculated results.
 #
-def calculate_icu_delta(n, dataset, icus):
+def calculate_icu_delta(n, dataset):
 	return int(dataset.at[n, "terapia_intensiva"] - dataset.at[n - 1, "terapia_intensiva"])
 
 
