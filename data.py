@@ -160,12 +160,12 @@ def elaborate_data(dataset):
     dataset.drop(columns={"tamponi", "casi_testati", "deceduti"}, inplace=True)
 
     # Renaming resulting columns
-    dataset.rename(columns={"data": "DATA", "nuovi_positivi": "POSITIVI", "testati": "TESTATI",
-                            "rapporto": "RAPPORTO", "terapia_intensiva": "T.I.", "terapia_intensiva_diff": "DIFF.",
+    dataset.rename(columns={"data": "DATA", "nuovi_positivi": "N. POS.", "testati": "TEST",
+                            "rapporto": "%", "terapia_intensiva": "T.I.", "terapia_intensiva_diff": "DIFF.",
                             "morti": "MORTI"}, inplace=True)
 
     # Reordering dataset
-    dataset = dataset.loc[:, ["DATA", "POSITIVI", "TESTATI", "RAPPORTO", "T.I.", "DIFF.", "MORTI"]]
+    dataset = dataset.loc[:, ["DATA", "N. POS.", "TEST", "%", "T.I.", "DIFF.", "MORTI"]]
     dataset.drop(index=0, inplace=True)
     return dataset
 
@@ -238,7 +238,7 @@ def select_data_range(dataset, begin, end):
 def predict_data(dataset):
     dataset["DATA"] = dataset["DATA"].map(datetime.datetime.toordinal)
     x = dataset["DATA"].to_numpy().reshape(-1, 1)
-    y = dataset["RAPPORTO"].to_numpy().reshape(-1, 1)
+    y = dataset["%"].to_numpy().reshape(-1, 1)
     linear_regressor = LinearRegression(n_jobs=multiprocessing.cpu_count())
     linear_regressor.fit(x, y)
     predictor = linear_regressor.predict(x)
@@ -271,4 +271,4 @@ def collect_regional_dataset(dataset, region, results):
 #
 def build_ranking_lists(n, regions, ratios, region, results):
     regions.insert(n, region.value[1])
-    ratios.insert(n, results.get(region).tail(1).loc[:, "RAPPORTO"])
+    ratios.insert(n, results.get(region).tail(1).loc[:, "%"])

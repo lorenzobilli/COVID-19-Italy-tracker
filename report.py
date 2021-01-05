@@ -61,7 +61,7 @@ def show_report(dataset_path, region=None, begin=None, end=None):
 	else:
 		report.set_title("Report globale")
 	report.autoscale()
-	report.scatter(dataset["DATA"], dataset["RAPPORTO"])
+	report.scatter(dataset["DATA"], dataset["%"])
 
 	predictor = predict_data(dataset.copy())
 	report.plot(dataset["DATA"], predictor, color="red")
@@ -103,9 +103,9 @@ def show_national_ranking(dataset_path):
 	)
 
 	ranking["REGIONE"] = regions
-	ranking["RAPPORTO"] = ratios
-	ranking["RAPPORTO"] = ranking["RAPPORTO"].astype(float)
-	ranking.sort_values(by="RAPPORTO", ascending=False, inplace=True)
+	ranking["%"] = ratios
+	ranking["%"] = ranking["%"].astype(float)
+	ranking.sort_values(by="%", ascending=False, inplace=True)
 	ranking.reset_index(drop=True, inplace=True)
 	ranking.index += 1
 
