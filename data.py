@@ -33,11 +33,11 @@ from utils import *
 #       A dataset as a pandas DataFrame object.
 #
 def parse_data(feed):
-	raw_data = pandas.read_csv(feed, parse_dates=[0])
-	dataset = pandas.DataFrame(raw_data)
-	dataset["data"] = pandas.to_datetime(dataset["data"])
-	dataset["data"] = dataset["data"].dt.date
-	return dataset
+    raw_data = pandas.read_csv(feed, parse_dates=[0])
+    dataset = pandas.DataFrame(raw_data)
+    dataset["data"] = pandas.to_datetime(dataset["data"])
+    dataset["data"] = dataset["data"].dt.date
+    return dataset
 
 
 #
@@ -50,15 +50,15 @@ def parse_data(feed):
 #       A new dataset without the unnecessary columns.
 #
 def cleanup_data(dataset, region=None):
-	dataset.drop(columns=["stato", "ricoverati_con_sintomi", "totale_ospedalizzati",
-						  "isolamento_domiciliare", "totale_positivi", "variazione_totale_positivi",
-						  "dimessi_guariti", "casi_da_sospetto_diagnostico", "casi_da_screening",
-						  "totale_casi", "note"], inplace=True)
-	if region is not None:
-		dataset.drop(dataset[dataset["codice_regione"] != region.value[0]].index, inplace=True)
-		dataset.drop(columns=["codice_regione", "denominazione_regione", "lat", "long"], inplace=True)
-		dataset.reset_index(drop=True, inplace=True)
-	return dataset
+    dataset.drop(columns=["stato", "ricoverati_con_sintomi", "totale_ospedalizzati",
+                          "isolamento_domiciliare", "totale_positivi", "variazione_totale_positivi",
+                          "dimessi_guariti", "casi_da_sospetto_diagnostico", "casi_da_screening",
+                          "totale_casi", "note"], inplace=True)
+    if region is not None:
+        dataset.drop(dataset[dataset["codice_regione"] != region.value[0]].index, inplace=True)
+        dataset.drop(columns=["codice_regione", "denominazione_regione", "lat", "long"], inplace=True)
+        dataset.reset_index(drop=True, inplace=True)
+    return dataset
 
 
 #
@@ -69,10 +69,10 @@ def cleanup_data(dataset, region=None):
 #       - dataset: Dataset from where data is retrieved.
 #
 def calculate_tests_delta(n, dataset):
-	if numpy.isnan(dataset.at[n - 1, "casi_testati"]):
-		return int(dataset.at[n, "tamponi"] - dataset.at[n - 1, "tamponi"])
-	else:
-		return int(dataset.at[n, "casi_testati"] - dataset.at[n - 1, "casi_testati"])
+    if numpy.isnan(dataset.at[n - 1, "casi_testati"]):
+        return int(dataset.at[n, "tamponi"] - dataset.at[n - 1, "tamponi"])
+    else:
+        return int(dataset.at[n, "casi_testati"] - dataset.at[n - 1, "casi_testati"])
 
 
 #
@@ -83,10 +83,10 @@ def calculate_tests_delta(n, dataset):
 #       - dataset: Dataset from where data is retrieved.
 #
 def calculate_ratio(n, dataset):
-	if (dataset.at[n, "testati"] == 0) or (dataset.at[n, "nuovi_positivi"] > dataset.at[n, "testati"]):
-		return 0
-	else:
-		return round(dataset.at[n, "nuovi_positivi"] / dataset.at[n, "testati"] * 100, 2)
+    if (dataset.at[n, "testati"] == 0) or (dataset.at[n, "nuovi_positivi"] > dataset.at[n, "testati"]):
+        return 0
+    else:
+        return round(dataset.at[n, "nuovi_positivi"] / dataset.at[n, "testati"] * 100, 2)
 
 
 #
@@ -97,11 +97,11 @@ def calculate_ratio(n, dataset):
 #       - dataset: Dataset from where data is retrieved.
 #
 def calculate_deaths_delta(n, dataset):
-	delta = dataset.at[n, "deceduti"] - dataset.at[n - 1, "deceduti"]
-	if delta >= 0:
-		return int(delta)
-	else:
-		return 0
+    delta = dataset.at[n, "deceduti"] - dataset.at[n - 1, "deceduti"]
+    if delta >= 0:
+        return int(delta)
+    else:
+        return 0
 
 
 #
@@ -112,7 +112,7 @@ def calculate_deaths_delta(n, dataset):
 #       - dataset: Dataset from where data is retrieved.
 #
 def calculate_icu_delta(n, dataset):
-	return int(dataset.at[n, "terapia_intensiva"] - dataset.at[n - 1, "terapia_intensiva"])
+    return int(dataset.at[n, "terapia_intensiva"] - dataset.at[n - 1, "terapia_intensiva"])
 
 
 #
@@ -132,42 +132,42 @@ def calculate_icu_delta(n, dataset):
 #       A new dataset with all the new data required.
 #
 def elaborate_data(dataset):
-	tests = Parallel(cpus)(
-		delayed(calculate_tests_delta)(n, dataset) for n in range(1, dataset.shape[0])
-	)
-	tests.insert(0, 0)
-	dataset["testati"] = list(tests)
+    tests = Parallel(cpus)(
+        delayed(calculate_tests_delta)(n, dataset) for n in range(1, dataset.shape[0])
+    )
+    tests.insert(0, 0)
+    dataset["testati"] = list(tests)
 
-	ratio = Parallel(cpus)(
-		delayed(calculate_ratio)(n, dataset) for n in range(1, dataset.shape[0])
-	)
-	ratio.insert(0, 0)
-	dataset["rapporto"] = ratio
+    ratio = Parallel(cpus)(
+        delayed(calculate_ratio)(n, dataset) for n in range(1, dataset.shape[0])
+    )
+    ratio.insert(0, 0)
+    dataset["rapporto"] = ratio
 
-	deaths = Parallel(cpus)(
-		delayed(calculate_deaths_delta)(n, dataset) for n in range(1, dataset.shape[0])
-	)
-	deaths.insert(0, 0)
-	dataset["morti"] = deaths
+    deaths = Parallel(cpus)(
+        delayed(calculate_deaths_delta)(n, dataset) for n in range(1, dataset.shape[0])
+    )
+    deaths.insert(0, 0)
+    dataset["morti"] = deaths
 
-	icus = Parallel(cpus)(
-		delayed(calculate_icu_delta)(n, dataset) for n in range(1, dataset.shape[0])
-	)
-	icus.insert(0, 0)
-	dataset["terapia_intensiva_diff"] = icus
+    icus = Parallel(cpus)(
+        delayed(calculate_icu_delta)(n, dataset) for n in range(1, dataset.shape[0])
+    )
+    icus.insert(0, 0)
+    dataset["terapia_intensiva_diff"] = icus
 
-	# Removing unneeded columns
-	dataset.drop(columns={"tamponi", "casi_testati", "deceduti"}, inplace=True)
+    # Removing unneeded columns
+    dataset.drop(columns={"tamponi", "casi_testati", "deceduti"}, inplace=True)
 
-	# Renaming resulting columns
-	dataset.rename(columns={"data": "DATA", "nuovi_positivi": "POSITIVI", "testati": "TESTATI",
-							"rapporto": "RAPPORTO", "terapia_intensiva": "T.I.", "terapia_intensiva_diff": "DIFF.",
-							"morti": "MORTI"}, inplace=True)
+    # Renaming resulting columns
+    dataset.rename(columns={"data": "DATA", "nuovi_positivi": "POSITIVI", "testati": "TESTATI",
+                            "rapporto": "RAPPORTO", "terapia_intensiva": "T.I.", "terapia_intensiva_diff": "DIFF.",
+                            "morti": "MORTI"}, inplace=True)
 
-	# Reordering dataset
-	dataset = dataset.loc[:, ["DATA", "POSITIVI", "TESTATI", "RAPPORTO", "T.I.", "DIFF.", "MORTI"]]
-	dataset.drop(index=0, inplace=True)
-	return dataset
+    # Reordering dataset
+    dataset = dataset.loc[:, ["DATA", "POSITIVI", "TESTATI", "RAPPORTO", "T.I.", "DIFF.", "MORTI"]]
+    dataset.drop(index=0, inplace=True)
+    return dataset
 
 
 #
@@ -180,11 +180,11 @@ def elaborate_data(dataset):
 #       A new dataset containing the first n values (where n is the quantity parameter).
 #
 def select_data_head(dataset, quantity):
-	if quantity > dataset.shape[0]:
-		return
-	for n in range(1 + quantity, dataset.shape[0] + 1):
-		dataset = dataset.drop(index=n)
-	return dataset
+    if quantity > dataset.shape[0]:
+        return
+    for n in range(1 + quantity, dataset.shape[0] + 1):
+        dataset = dataset.drop(index=n)
+    return dataset
 
 
 #
@@ -197,11 +197,11 @@ def select_data_head(dataset, quantity):
 #       A new dataset containing the last n values (where n is the quantity parameter).
 #
 def select_data_tail(dataset, quantity):
-	if quantity > dataset.shape[0]:
-		return
-	for n in range(1, dataset.shape[0] - (quantity - 1)):
-		dataset = dataset.drop(index=n)
-	return dataset
+    if quantity > dataset.shape[0]:
+        return
+    for n in range(1, dataset.shape[0] - (quantity - 1)):
+        dataset = dataset.drop(index=n)
+    return dataset
 
 
 #
@@ -214,17 +214,17 @@ def select_data_tail(dataset, quantity):
 #   Returns:
 #       A new dataset containing the selected range of values.
 def select_data_range(dataset, begin, end):
-	if begin <= 0:
-		return
-	if end > dataset.shape[0]:
-		return
-	if end <= begin:
-		return
-	for n in range(1, begin):
-		dataset = dataset.drop(index=n)
-	for n in range(end, dataset.shape[0] + 1):
-		dataset = dataset.drop(index=n)
-	return dataset
+    if begin <= 0:
+        return
+    if end > dataset.shape[0]:
+        return
+    if end <= begin:
+        return
+    for n in range(1, begin):
+        dataset = dataset.drop(index=n)
+    for n in range(end, dataset.shape[0] + 1):
+        dataset = dataset.drop(index=n)
+    return dataset
 
 
 #
@@ -236,13 +236,13 @@ def select_data_range(dataset, begin, end):
 #       A plottable line representing the computed linear regression.
 #
 def predict_data(dataset):
-	dataset["DATA"] = dataset["DATA"].map(datetime.datetime.toordinal)
-	x = dataset["DATA"].to_numpy().reshape(-1, 1)
-	y = dataset["RAPPORTO"].to_numpy().reshape(-1, 1)
-	linear_regressor = LinearRegression(n_jobs=multiprocessing.cpu_count())
-	linear_regressor.fit(x, y)
-	predictor = linear_regressor.predict(x)
-	return predictor
+    dataset["DATA"] = dataset["DATA"].map(datetime.datetime.toordinal)
+    x = dataset["DATA"].to_numpy().reshape(-1, 1)
+    y = dataset["RAPPORTO"].to_numpy().reshape(-1, 1)
+    linear_regressor = LinearRegression(n_jobs=multiprocessing.cpu_count())
+    linear_regressor.fit(x, y)
+    predictor = linear_regressor.predict(x)
+    return predictor
 
 
 #
@@ -254,10 +254,10 @@ def predict_data(dataset):
 #       - results: Dictionary where collected dataset shall be stored.
 #
 def collect_regional_dataset(dataset, region, results):
-	regional_dataset = dataset.copy()
-	regional_dataset = cleanup_data(regional_dataset, region)
-	regional_dataset = elaborate_data(regional_dataset)
-	results[region] = regional_dataset
+    regional_dataset = dataset.copy()
+    regional_dataset = cleanup_data(regional_dataset, region)
+    regional_dataset = elaborate_data(regional_dataset)
+    results[region] = regional_dataset
 
 
 #
@@ -270,5 +270,5 @@ def collect_regional_dataset(dataset, region, results):
 #       - results: Dictionary from where ratios are retrieved.
 #
 def build_ranking_lists(n, regions, ratios, region, results):
-	regions.insert(n, region.value[1])
-	ratios.insert(n, results.get(region).tail(1).loc[:, "RAPPORTO"])
+    regions.insert(n, region.value[1])
+    ratios.insert(n, results.get(region).tail(1).loc[:, "RAPPORTO"])
