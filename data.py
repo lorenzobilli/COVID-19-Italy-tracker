@@ -51,9 +51,9 @@ def parse_data(feed):
 #
 def cleanup_data(dataset, region=None):
 	dataset.drop(columns=["stato", "ricoverati_con_sintomi", "totale_ospedalizzati",
-	                      "isolamento_domiciliare", "totale_positivi", "nuovi_positivi",
-	                      "dimessi_guariti", "casi_da_sospetto_diagnostico", "casi_da_screening",
-	                      "totale_casi", "note"], inplace=True)
+						  "isolamento_domiciliare", "totale_positivi", "variazione_totale_positivi",
+						  "dimessi_guariti", "casi_da_sospetto_diagnostico", "casi_da_screening",
+						  "totale_casi", "note"], inplace=True)
 	if region is not None:
 		dataset.drop(dataset[dataset["codice_regione"] != region.value[0]].index, inplace=True)
 		dataset.drop(columns=["codice_regione", "denominazione_regione", "lat", "long"], inplace=True)
@@ -83,10 +83,10 @@ def calculate_tests_delta(n, dataset):
 #       - dataset: Dataset from where data is retrieved.
 #
 def calculate_ratio(n, dataset):
-	if (dataset.at[n, "testati"] == 0) or (dataset.at[n, "variazione_totale_positivi"] > dataset.at[n, "testati"]):
+	if (dataset.at[n, "testati"] == 0) or (dataset.at[n, "nuovi_positivi"] > dataset.at[n, "testati"]):
 		return 0
 	else:
-		return round(dataset.at[n, "variazione_totale_positivi"] / dataset.at[n, "testati"] * 100, 2)
+		return round(dataset.at[n, "nuovi_positivi"] / dataset.at[n, "testati"] * 100, 2)
 
 
 #
@@ -160,9 +160,9 @@ def elaborate_data(dataset):
 	dataset.drop(columns={"tamponi", "casi_testati", "deceduti"}, inplace=True)
 
 	# Renaming resulting columns
-	dataset.rename(columns={"data": "DATA", "variazione_totale_positivi": "POSITIVI", "testati": "TESTATI",
-	                        "rapporto": "RAPPORTO", "terapia_intensiva": "T.I.", "terapia_intensiva_diff": "DIFF.",
-	                        "morti": "MORTI"}, inplace=True)
+	dataset.rename(columns={"data": "DATA", "nuovi_positivi": "POSITIVI", "testati": "TESTATI",
+							"rapporto": "RAPPORTO", "terapia_intensiva": "T.I.", "terapia_intensiva_diff": "DIFF.",
+							"morti": "MORTI"}, inplace=True)
 
 	# Reordering dataset
 	dataset = dataset.loc[:, ["DATA", "POSITIVI", "TESTATI", "RAPPORTO", "T.I.", "DIFF.", "MORTI"]]
