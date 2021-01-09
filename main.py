@@ -106,7 +106,8 @@ def main():
 		print("1) Andamento nazionale")
 		print("2) Andamento regionale")
 		print("3) Classifica nazionale contagi")
-		print("4) Uscita")
+		print("4) Indici RT")
+		print("5) Uscita")
 		option = input(">: ")
 		if int(option) == 1:
 			choose_report_type(national_data_path)
@@ -185,6 +186,8 @@ def main():
 		elif int(option) == 3:
 			show_national_ranking(regional_data_path)
 		elif int(option) == 4:
+			print("Funzione attualmente non implementata")
+		elif int(option) == 5:
 			break
 		else:
 			print("Opzione selezionata non valida")
