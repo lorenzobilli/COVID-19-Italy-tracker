@@ -36,7 +36,7 @@ def show_report(dataset_path, region=None, begin=None, end=None):
 	pandas.set_option("display.max_columns", None)
 	pandas.set_option("display.width", None)
 
-	dataset = parse_data(dataset_path)
+	dataset = parse_csv_data(dataset_path)
 	dataset = cleanup_data(dataset, region)
 	dataset = elaborate_data(dataset)
 
@@ -87,7 +87,7 @@ def show_report(dataset_path, region=None, begin=None, end=None):
 #       - dataset_path: Path pointing to the CSV file used to generate the report.
 #
 def show_national_ranking(dataset_path):
-	dataset = parse_data(dataset_path)
+	dataset = parse_csv_data(dataset_path)
 	results = {}
 	ranking = pandas.DataFrame()
 
@@ -111,3 +111,7 @@ def show_national_ranking(dataset_path):
 
 	print("")
 	print(tabify(ranking))
+
+
+def show_rt_index(dataset_path):
+	print(parse_json_data(dataset_path))

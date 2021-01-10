@@ -176,8 +176,9 @@ def main():
 		print("Percorso repository dati COVID-19 mancante")
 		exit(-1)
 
-	national_data_path = Path(sys.argv[1] + "/dati-andamento-nazionale/dpc-covid19-ita-andamento-nazionale.csv")
-	regional_data_path = Path(sys.argv[1] + "/dati-regioni/dpc-covid19-ita-regioni.csv")
+	national_data_path = Path(sys.argv[1] + "COVID-19/dati-andamento-nazionale/dpc-covid19-ita-andamento-nazionale.csv")
+	regional_data_path = Path(sys.argv[1] + "COVID-19/dati-regioni/dpc-covid19-ita-regioni.csv")
+	rt_data_path = Path(sys.argv[1] + "Indice-RT/File-JSON.json")
 
 	print_splashscreen()
 
@@ -198,7 +199,7 @@ def main():
 		elif int(option) == 3:
 			show_national_ranking(regional_data_path)
 		elif int(option) == 4:
-			print("Funzione attualmente non implementata")
+			show_rt_index(rt_data_path)
 		elif int(option) == 5:
 			break
 		else:

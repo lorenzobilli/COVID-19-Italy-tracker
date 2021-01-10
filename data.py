@@ -17,6 +17,7 @@
 
 
 import datetime
+import json
 import numpy
 import pandas
 from sklearn.linear_model import LinearRegression
@@ -32,12 +33,26 @@ from utils import *
 #   Returns:
 #       A dataset as a pandas DataFrame object.
 #
-def parse_data(feed):
+def parse_csv_data(feed):
     raw_data = pandas.read_csv(feed, parse_dates=[0])
     dataset = pandas.DataFrame(raw_data)
     dataset["data"] = pandas.to_datetime(dataset["data"])
     dataset["data"] = dataset["data"].dt.date
     return dataset
+
+
+#
+#   Brief:
+#       Parses raw data retrieved from a JSON file and returns a dataset as a Python dictionary.
+#   Parameters:
+#       - feed: Raw data to be parsed (must contain/point to a JSON file).
+#   Returns:
+#       A dataset as a Python dictionary.
+#
+def parse_json_data(feed):
+    raw_data = open(feed)
+    data = json.loads(raw_data.read())
+    return data
 
 
 #
