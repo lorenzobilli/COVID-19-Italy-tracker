@@ -199,7 +199,7 @@ def main():
 		elif int(option) == 3:
 			show_national_ranking(regional_data_path)
 		elif int(option) == 4:
-			show_rt_index(rt_data_path)
+			show_rt_index_global_latest(rt_data_path)
 		elif int(option) == 5:
 			break
 		else:

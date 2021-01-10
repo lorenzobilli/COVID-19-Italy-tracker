@@ -113,5 +113,7 @@ def show_national_ranking(dataset_path):
 	print(tabify(ranking))
 
 
-def show_rt_index(dataset_path):
-	print(parse_json_data(dataset_path))
+def show_rt_index_global_latest(dataset_path):
+	dataset = parse_json_data(dataset_path)
+	print(tabify(dataset))
+

@@ -17,7 +17,6 @@
 
 
 import datetime
-import json
 import numpy
 import pandas
 from sklearn.linear_model import LinearRegression
@@ -50,9 +49,9 @@ def parse_csv_data(feed):
 #       A dataset as a Python dictionary.
 #
 def parse_json_data(feed):
-    raw_data = open(feed)
-    data = json.loads(raw_data.read())
-    return data
+    raw_data = pandas.read_json(feed)
+    dataset = pandas.DataFrame(raw_data)
+    return dataset
 
 
 #
