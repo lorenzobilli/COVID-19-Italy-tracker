@@ -32,11 +32,25 @@ from utils import *
 #   Returns:
 #       A dataset as a pandas DataFrame object.
 #
-def parse_data(feed):
+def parse_csv_data(feed):
     raw_data = pandas.read_csv(feed, parse_dates=[0])
     dataset = pandas.DataFrame(raw_data)
     dataset["data"] = pandas.to_datetime(dataset["data"])
     dataset["data"] = dataset["data"].dt.date
+    return dataset
+
+
+#
+#   Brief:
+#       Parses raw data retrieved from a JSON file and returns a dataset as a Python dictionary.
+#   Parameters:
+#       - feed: Raw data to be parsed (must contain/point to a JSON file).
+#   Returns:
+#       A dataset as a Python dictionary.
+#
+def parse_json_data(feed):
+    raw_data = pandas.read_json(feed)
+    dataset = pandas.DataFrame(raw_data)
     return dataset
 
 
@@ -200,6 +214,12 @@ def select_data_tail(dataset, quantity):
     if quantity > dataset.shape[0]:
         return
     for n in range(1, dataset.shape[0] - (quantity - 1)):
+        dataset = dataset.drop(index=n)
+    return dataset
+
+
+def select_data_bottom(dataset):
+    for n in range(0, dataset.shape[0] - 1):
         dataset = dataset.drop(index=n)
     return dataset
 
