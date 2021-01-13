@@ -218,6 +218,12 @@ def select_data_tail(dataset, quantity):
     return dataset
 
 
+def select_data_bottom(dataset):
+    for n in range(0, dataset.shape[0] - 1):
+        dataset = dataset.drop(index=n)
+    return dataset
+
+
 #
 #   Brief:
 #       Trims a given dataset by keeping only a certain range of data.

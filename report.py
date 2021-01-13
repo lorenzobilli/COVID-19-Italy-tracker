@@ -114,6 +114,19 @@ def show_national_ranking(dataset_path):
 
 
 def show_rt_index_global_latest(dataset_path):
-	dataset = parse_json_data(dataset_path)
-	print(tabify(dataset))
+	rt_list = parse_json_data(dataset_path)
+	rt_list = select_data_bottom(rt_list)
+
+	timestamp = pandas.to_datetime(rt_list["data"]).dt.date
+
+	rt_list.drop(columns={"data", "note", "link"}, inplace=True)
+	rt_list.reset_index(drop=True, inplace=True)
+
+	rt_list = rt_list.transpose().reset_index()
+	rt_list.columns = ["REGIONE", "INDICE RT"]
+	rt_list.sort_values(by="INDICE RT", ascending=False, inplace=True)
+	rt_list.reset_index(drop=True, inplace=True)
+	rt_list.index += 1
+
+	print(tabify(rt_list))
 

@@ -199,7 +199,20 @@ def main():
 		elif int(option) == 3:
 			show_national_ranking(regional_data_path)
 		elif int(option) == 4:
-			show_rt_index_global_latest(rt_data_path)
+			while True:
+				print("")
+				print("1) Valori RT attuali")
+				print("2) Cronologia valori RT")
+				print("3) Indietro")
+				option_rt = input(">: ")
+				if int(option_rt) == 1:
+					show_rt_index_global_latest(rt_data_path)
+				elif int(option_rt) == 2:
+					print("Funzione attualmente non implementata")
+				elif int(option_rt) == 3:
+					break
+				else:
+					print("Opzione selezionata non valida")
 		elif int(option) == 5:
 			break
 		else:
