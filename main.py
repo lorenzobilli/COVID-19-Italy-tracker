@@ -34,6 +34,21 @@ from report import *
 def choose_report_type(dataset_path, region=None):
 	while True:
 		print("")
+		if (region == None):
+			subtitle = "- ANDAMENTO NAZIONALE -"
+			for n in range(0, len(subtitle)):
+				print("=", end="")
+			print("\n" + subtitle)
+			for n in range(0, len(subtitle)):
+				print("=", end="")
+		else:
+			subtitle = "- ANDAMENTO REGIONE " + region.value[1].upper() + " -"
+			for n in range(0, len(subtitle)):
+				print("=", end="")
+			print("\n" + subtitle)
+			for n in range(0, len(subtitle)):
+				print("=", end="")
+		print("\n")
 		print("1) Visualizza report globale")
 		print("2) Visualizza primi N giorni")
 		print("3) Visualizza ultimi N giorni")
