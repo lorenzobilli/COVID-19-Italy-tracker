@@ -119,11 +119,12 @@ def show_rt_index_global_latest(dataset_path):
 
 	timestamp = pandas.to_datetime(rt_list["data"]).dt.date
 
-	rt_list.drop(columns={"data", "note", "link"}, inplace=True)
+	rt_list.drop(columns={"data", "data_IT_format", "note", "link"}, inplace=True)
 	rt_list.reset_index(drop=True, inplace=True)
 
 	rt_list = rt_list.transpose().reset_index()
 	rt_list.columns = ["REGIONE", "INDICE RT"]
+	rt_list["INDICE RT"] = pandas.to_numeric(rt_list["INDICE RT"])
 	rt_list.sort_values(by="INDICE RT", ascending=False, inplace=True)
 	rt_list.reset_index(drop=True, inplace=True)
 	rt_list.index += 1
