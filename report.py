@@ -131,3 +131,8 @@ def show_rt_index_global_latest(dataset_path):
 
 	print(tabify(rt_list))
 
+
+def show_rt_index_region(dataset_path, region):
+	rt_list = parse_json_data(dataset_path)
+
+	print(tabify(rt_list))

@@ -223,7 +223,9 @@ def main():
 				if int(option_rt) == 1:
 					show_rt_index_global_latest(rt_data_path)
 				elif int(option_rt) == 2:
-					print("Funzione attualmente non implementata")
+					region = select_region()
+					if (region != None):
+						show_rt_index_region(rt_data_path, region)
 				elif int(option_rt) == 3:
 					break
 				else:
