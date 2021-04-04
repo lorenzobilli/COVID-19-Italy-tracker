@@ -1,15 +1,15 @@
 #
 #   COVID-19 Italy tracker
 #
-#   Copyright (c) 2020 Lorenzo Billi
+#   Copyright (c) 2020-2021 Lorenzo Billi
 #
-#   This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
-#   License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any
-#   later version.
+#   This program is free software: you can redistribute it and/or modify it under the terms of the
+#   GNU General Public License as published by the Free Software Foundation, either version 3 of
+#   the License, or (at your option) any later version.
 #
-#   This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-#   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-#   more details.
+#   This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+#   without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#   See the GNU General Public License for more details.
 #
 #   You should have received a copy of the GNU General Public License along with this program.
 #   If not, see <http://www.gnu.org/licenses/>.
@@ -18,7 +18,7 @@
 
 import matplotlib.pyplot as mp
 
-from Region import *
+from region import *
 from data import *
 from utils import *
 
@@ -119,11 +119,12 @@ def show_rt_index_global_latest(dataset_path):
 
 	timestamp = pandas.to_datetime(rt_list["data"]).dt.date
 
-	rt_list.drop(columns={"data", "note", "link"}, inplace=True)
+	rt_list.drop(columns={"data", "data_IT_format", "note", "link"}, inplace=True)
 	rt_list.reset_index(drop=True, inplace=True)
 
 	rt_list = rt_list.transpose().reset_index()
 	rt_list.columns = ["REGIONE", "INDICE RT"]
+	rt_list["INDICE RT"] = pandas.to_numeric(rt_list["INDICE RT"])
 	rt_list.sort_values(by="INDICE RT", ascending=False, inplace=True)
 	rt_list.reset_index(drop=True, inplace=True)
 	rt_list.index += 1
