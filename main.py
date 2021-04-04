@@ -225,6 +225,14 @@ def main():
 				elif int(option_rt) == 2:
 					region = select_region()
 					if (region != None):
+						print("")
+						subtitle = "- INDICE RT REGIONE " + region.value[1].upper() + " -"
+						for n in range(0, len(subtitle)):
+							print("=", end="")
+						print("\n" + subtitle)
+						for n in range(0, len(subtitle)):
+							print("=", end="")
+						print("")
 						show_rt_index_region(rt_data_path, region)
 				elif int(option_rt) == 3:
 					break

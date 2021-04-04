@@ -115,12 +115,9 @@ def show_national_ranking(dataset_path):
 def show_rt_index_global_latest(dataset_path):
 	rt_list = parse_json_data(dataset_path)
 	rt_list = select_data_bottom(rt_list)
-	timestamp = pandas.to_datetime(rt_list["data"]).dt.date
+	rt_list["data"] = pandas.to_datetime(rt_list["data"]).dt.date
 
-	dataset = cleanup_rt_data(rt_list, None)
-
-	#rt_list.drop(columns={"data", "data_IT_format", "note", "link"}, inplace=True)
-	#rt_list.reset_index(drop=True, inplace=True)
+	rt_list = cleanup_rt_data(rt_list, None)
 
 	rt_list = rt_list.transpose().reset_index()
 	rt_list.columns = ["REGIONE", "INDICE RT"]
@@ -134,7 +131,14 @@ def show_rt_index_global_latest(dataset_path):
 
 def show_rt_index_region(dataset_path, region):
 	rt_list = parse_json_data(dataset_path)
-	timestamp = pandas.to_datetime(rt_list["data"]).dt.date
-	dataset = cleanup_rt_data(rt_list, region)
+	rt_list["data"] = pandas.to_datetime(rt_list["data"]).dt.date
+
+	rt_list = cleanup_rt_data(rt_list, region)
+
+	rt_list.drop(rt_list.columns.difference(["DATA", region.value[1]]), 1, inplace=True)
+	rt_list.rename(columns={region.value[1]: "INDICE RT"}, inplace=True)
+	rt_list["INDICE RT"] = pandas.to_numeric(rt_list["INDICE RT"])
+	rt_list.reset_index(drop=True, inplace=True)
+	rt_list.index += 1
 
 	print(tabify(rt_list))

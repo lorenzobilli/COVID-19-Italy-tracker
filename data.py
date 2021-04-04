@@ -79,9 +79,10 @@ def cleanup_data(dataset, region=None):
 def cleanup_rt_data(dataset, region=None):
     if (region == None):
         dataset.drop(columns={"data"}, inplace=True)
-        #dataset = select_data_bottom(dataset)
     dataset.drop(columns={"data_IT_format", "note", "link"}, inplace=True)
 
+    if (region != None):
+        dataset.rename(columns={"data": "DATA"}, inplace=True)
     dataset.rename(columns={
         "Abruzzo": Region.ABRUZZO.value[1],
         "Basilicata": Region.BASILICATA.value[1],
@@ -107,8 +108,6 @@ def cleanup_rt_data(dataset, region=None):
     }, inplace=True)
     dataset.reset_index(drop=True, inplace=True)
     return dataset
-
-
 
 
 #
