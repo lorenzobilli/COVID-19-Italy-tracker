@@ -21,6 +21,7 @@ import numpy
 import pandas
 from sklearn.linear_model import LinearRegression
 from joblib import Parallel, delayed
+from region import *
 from utils import *
 
 
@@ -73,6 +74,41 @@ def cleanup_data(dataset, region=None):
         dataset.drop(columns=["codice_regione", "denominazione_regione", "lat", "long"], inplace=True)
         dataset.reset_index(drop=True, inplace=True)
     return dataset
+
+
+def cleanup_rt_data(dataset, region=None):
+    if (region == None):
+        dataset.drop(columns={"data"}, inplace=True)
+        #dataset = select_data_bottom(dataset)
+    dataset.drop(columns={"data_IT_format", "note", "link"}, inplace=True)
+
+    dataset.rename(columns={
+        "Abruzzo": Region.ABRUZZO.value[1],
+        "Basilicata": Region.BASILICATA.value[1],
+        "Calabria": Region.CALABRIA.value[1],
+        "Campania": Region.CAMPANIA.value[1],
+        "Emilia Romagna": Region.EMILIA_ROMAGNA.value[1],
+        "Friuli Venezia Giulia": Region.FRIULI_VENEZIA_GIULIA.value[1],
+        "Lazio": Region.LAZIO.value[1],
+        "Liguria": Region.LIGURIA.value[1],
+        "Lombardia": Region.LOMBARDIA.value[1],
+        "Marche": Region.MARCHE.value[1],
+        "Molise": Region.MOLISE.value[1],
+        "Piemonte": Region.PIEMONTE.value[1],
+        "PA Bolzano/Bozen": Region.PA_BOLZANO.value[1],
+        "PA Trento": Region.PA_TRENTO.value[1],
+        "Puglia": Region.PUGLIA.value[1],
+        "Sardegna": Region.SARDEGNA.value[1],
+        "Sicilia": Region.SICILIA.value[1],
+        "Toscana": Region.TOSCANA.value[1],
+        "Umbria": Region.UMBRIA.value[1],
+        "Valle d'Aosta": Region.VALLE_D_AOSTA.value[1],
+        "Veneto": Region.VENETO.value[1]
+    }, inplace=True)
+    dataset.reset_index(drop=True, inplace=True)
+    return dataset
+
+
 
 
 #
