@@ -74,10 +74,10 @@ def choose_report_type(dataset_path, region=None):
 
 
 #
-#	Brief:
-#		Chooses which region should be used for data analysis.
-#	Returns:
-#		Selected region by user.
+#   Brief:
+#       Chooses which region should be used for data analysis.
+#   Returns:
+#       Selected region by user.
 #
 def select_region():
 	while True:

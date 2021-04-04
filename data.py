@@ -60,7 +60,8 @@ def parse_json_data(feed):
 #       Cleans up a given dataset by removing all columns that are not used during data analysis.
 #   Parameters:
 #       - dataset: Dataset from which the data shall be removed.
-#       - region: If provided, marks current dataset as a regional one, thus removing additional unneeded columns.
+#       - region: If provided, marks current dataset as a regional one, thus removing additional
+#                 unneeded columns.
 #   Returns:
 #       A new dataset without the unnecessary columns.
 #
@@ -76,6 +77,15 @@ def cleanup_data(dataset, region=None):
     return dataset
 
 
+#
+#   Brief:
+#       Cleans up a given RT dataset and prepares it for reports generation.
+#   Parameters:
+#       - dataset: Dataset from which the data shall be transformed.
+#       - region: If provided, changes some of the data being removed from the dataset.
+#   Returns:
+#       A new dataset without the unnecessary columns.
+#
 def cleanup_rt_data(dataset, region=None):
     if (region == None):
         dataset.drop(columns={"data"}, inplace=True)
@@ -253,6 +263,14 @@ def select_data_tail(dataset, quantity):
     return dataset
 
 
+#
+#   Brief:
+#       Trims a given dataset by keeping only the latest row of data.
+#   Parameters:
+#       - dataset: Dataset to be trimmed down.
+#   Returns:
+#       A new dataset containing only the latest row of data.
+#
 def select_data_bottom(dataset):
     for n in range(0, dataset.shape[0] - 1):
         dataset = dataset.drop(index=n)
@@ -268,6 +286,7 @@ def select_data_bottom(dataset):
 #       - end: End of the range of data to be kept.
 #   Returns:
 #       A new dataset containing the selected range of values.
+#
 def select_data_range(dataset, begin, end):
     if begin <= 0:
         return
