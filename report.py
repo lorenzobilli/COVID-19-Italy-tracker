@@ -18,7 +18,6 @@
 
 import matplotlib.pyplot as mp
 
-from region import *
 from data import *
 from utils import *
 
@@ -113,14 +112,18 @@ def show_national_ranking(dataset_path):
 	print(tabify(ranking))
 
 
+#
+#   Brief:
+#       Shows the latest available RT index table ranked by regions.
+#   Parameters:
+#       - dataset_path: Path pointing to the JSON file used to generate the report.
+#
 def show_rt_index_global_latest(dataset_path):
 	rt_list = parse_json_data(dataset_path)
 	rt_list = select_data_bottom(rt_list)
+	rt_list["data"] = pandas.to_datetime(rt_list["data"]).dt.date
 
-	timestamp = pandas.to_datetime(rt_list["data"]).dt.date
-
-	rt_list.drop(columns={"data", "data_IT_format", "note", "link"}, inplace=True)
-	rt_list.reset_index(drop=True, inplace=True)
+	rt_list = cleanup_rt_data(rt_list, None)
 
 	rt_list = rt_list.transpose().reset_index()
 	rt_list.columns = ["REGIONE", "INDICE RT"]
@@ -131,3 +134,24 @@ def show_rt_index_global_latest(dataset_path):
 
 	print(tabify(rt_list))
 
+
+#
+#   Brief:
+#       Shows every available historical values of the RT index for a given region.
+#   Parameters:
+#       - dataset_path: Path pointing to the JSON file used to generate the report.
+#       - region: Region for which the report shall be generated.
+#
+def show_rt_index_region(dataset_path, region):
+	rt_list = parse_json_data(dataset_path)
+	rt_list["data"] = pandas.to_datetime(rt_list["data"]).dt.date
+
+	rt_list = cleanup_rt_data(rt_list, region)
+
+	rt_list.drop(rt_list.columns.difference(["DATA", region.value[1]]), 1, inplace=True)
+	rt_list.rename(columns={region.value[1]: "INDICE RT"}, inplace=True)
+	rt_list["INDICE RT"] = pandas.to_numeric(rt_list["INDICE RT"])
+	rt_list.reset_index(drop=True, inplace=True)
+	rt_list.index += 1
+
+	print(tabify(rt_list))

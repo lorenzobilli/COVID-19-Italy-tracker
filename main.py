@@ -74,10 +74,10 @@ def choose_report_type(dataset_path, region=None):
 
 
 #
-#	Brief:
-#		Chooses which region should be used for data analysis.
-#	Returns:
-#		Selected region by user.
+#   Brief:
+#       Chooses which region should be used for data analysis.
+#   Returns:
+#       Selected region by user.
 #
 def select_region():
 	while True:
@@ -223,7 +223,17 @@ def main():
 				if int(option_rt) == 1:
 					show_rt_index_global_latest(rt_data_path)
 				elif int(option_rt) == 2:
-					print("Funzione attualmente non implementata")
+					region = select_region()
+					if (region != None):
+						print("")
+						subtitle = "- INDICE RT REGIONE " + region.value[1].upper() + " -"
+						for n in range(0, len(subtitle)):
+							print("=", end="")
+						print("\n" + subtitle)
+						for n in range(0, len(subtitle)):
+							print("=", end="")
+						print("")
+						show_rt_index_region(rt_data_path, region)
 				elif int(option_rt) == 3:
 					break
 				else:

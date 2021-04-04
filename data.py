@@ -21,6 +21,7 @@ import numpy
 import pandas
 from sklearn.linear_model import LinearRegression
 from joblib import Parallel, delayed
+from region import *
 from utils import *
 
 
@@ -59,7 +60,8 @@ def parse_json_data(feed):
 #       Cleans up a given dataset by removing all columns that are not used during data analysis.
 #   Parameters:
 #       - dataset: Dataset from which the data shall be removed.
-#       - region: If provided, marks current dataset as a regional one, thus removing additional unneeded columns.
+#       - region: If provided, marks current dataset as a regional one, thus removing additional
+#                 unneeded columns.
 #   Returns:
 #       A new dataset without the unnecessary columns.
 #
@@ -72,6 +74,49 @@ def cleanup_data(dataset, region=None):
         dataset.drop(dataset[dataset["codice_regione"] != region.value[0]].index, inplace=True)
         dataset.drop(columns=["codice_regione", "denominazione_regione", "lat", "long"], inplace=True)
         dataset.reset_index(drop=True, inplace=True)
+    return dataset
+
+
+#
+#   Brief:
+#       Cleans up a given RT dataset and prepares it for reports generation.
+#   Parameters:
+#       - dataset: Dataset from which the data shall be transformed.
+#       - region: If provided, changes some of the data being removed from the dataset.
+#   Returns:
+#       A new dataset without the unnecessary columns.
+#
+def cleanup_rt_data(dataset, region=None):
+    if (region == None):
+        dataset.drop(columns={"data"}, inplace=True)
+    dataset.drop(columns={"data_IT_format", "note", "link"}, inplace=True)
+
+    if (region != None):
+        dataset.rename(columns={"data": "DATA"}, inplace=True)
+    dataset.rename(columns={
+        "Abruzzo": Region.ABRUZZO.value[1],
+        "Basilicata": Region.BASILICATA.value[1],
+        "Calabria": Region.CALABRIA.value[1],
+        "Campania": Region.CAMPANIA.value[1],
+        "Emilia Romagna": Region.EMILIA_ROMAGNA.value[1],
+        "Friuli Venezia Giulia": Region.FRIULI_VENEZIA_GIULIA.value[1],
+        "Lazio": Region.LAZIO.value[1],
+        "Liguria": Region.LIGURIA.value[1],
+        "Lombardia": Region.LOMBARDIA.value[1],
+        "Marche": Region.MARCHE.value[1],
+        "Molise": Region.MOLISE.value[1],
+        "Piemonte": Region.PIEMONTE.value[1],
+        "PA Bolzano/Bozen": Region.PA_BOLZANO.value[1],
+        "PA Trento": Region.PA_TRENTO.value[1],
+        "Puglia": Region.PUGLIA.value[1],
+        "Sardegna": Region.SARDEGNA.value[1],
+        "Sicilia": Region.SICILIA.value[1],
+        "Toscana": Region.TOSCANA.value[1],
+        "Umbria": Region.UMBRIA.value[1],
+        "Valle d'Aosta": Region.VALLE_D_AOSTA.value[1],
+        "Veneto": Region.VENETO.value[1]
+    }, inplace=True)
+    dataset.reset_index(drop=True, inplace=True)
     return dataset
 
 
@@ -218,6 +263,14 @@ def select_data_tail(dataset, quantity):
     return dataset
 
 
+#
+#   Brief:
+#       Trims a given dataset by keeping only the latest row of data.
+#   Parameters:
+#       - dataset: Dataset to be trimmed down.
+#   Returns:
+#       A new dataset containing only the latest row of data.
+#
 def select_data_bottom(dataset):
     for n in range(0, dataset.shape[0] - 1):
         dataset = dataset.drop(index=n)
@@ -233,6 +286,7 @@ def select_data_bottom(dataset):
 #       - end: End of the range of data to be kept.
 #   Returns:
 #       A new dataset containing the selected range of values.
+#
 def select_data_range(dataset, begin, end):
     if begin <= 0:
         return
