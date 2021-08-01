@@ -306,13 +306,14 @@ def select_data_range(dataset, begin, end):
 #       Predicts trend with linear regression on the given dataset values.
 #   Parameters:
 #       - dataset: Dataset where the prediction shall be made.
+#       - value_label: Values to be regressed.
 #   Returns:
 #       A plottable line representing the computed linear regression.
 #
-def predict_data(dataset):
+def predict_data(dataset, value_label):
     dataset["DATA"] = dataset["DATA"].map(datetime.datetime.toordinal)
     x = dataset["DATA"].to_numpy().reshape(-1, 1)
-    y = dataset["%"].to_numpy().reshape(-1, 1)
+    y = dataset[value_label].to_numpy().reshape(-1, 1)
     linear_regressor = LinearRegression(n_jobs=multiprocessing.cpu_count())
     linear_regressor.fit(x, y)
     predictor = linear_regressor.predict(x)
