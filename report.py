@@ -39,7 +39,7 @@ def show_plot(dataset, figure_title, report_title, ylabel, value_label):
 	report.set_title(report_title)
 	report.autoscale()
 	report.scatter(dataset["DATA"], dataset[value_label])
-	predictor = predict_data(dataset.copy(), "%")
+	predictor = predict_data(dataset.copy(), value_label)
 	report.plot(dataset["DATA"], predictor, color="red")
 	mp.show()
 
@@ -67,8 +67,6 @@ def show_report(dataset_path, region=None, begin=None, end=None):
 	else:
 		figure_title += " REGIONE " + region.value[1].upper()
 
-	report_title = ""
-
 	if begin is not None and end is not None:
 		report_title = "Dal giorno " + str(begin) + " al giorno " + str(end)
 		dataset = select_data_range(dataset, int(begin), int(end))
@@ -81,18 +79,27 @@ def show_report(dataset_path, region=None, begin=None, end=None):
 	else:
 		report_title = "Report globale"
 
-	print("")
-	print(tabify(dataset))
+	while (True):
+		print("")
+		print(tabify(dataset))
 
-	print("")
-	print("1) Mostra grafico regressione lineare % nuovi positivi")
-	print("2) Indietro")
-	option = input(">: ")
+		print("")
+		print("1) Mostra grafico regressione lineare % nuovi positivi")
+		print("2) Mostra grafico regressione lineare pazienti in T.I.")
+		print("3) Mostra grafico regressione lineare morti")
+		print("4) Indietro")
+		option = input(">: ")
 
-	if int(option) == 1:
-		show_plot(dataset, figure_title, report_title, "Nuovi positivi (%)", "%")
-	else:
-		return
+		if int(option) == 1:
+			show_plot(dataset, figure_title, report_title, "Nuovi positivi (%)", "%")
+		elif int(option) == 2:
+			show_plot(dataset, figure_title, report_title, "Pazienti in terapia intensiva", "T.I.")
+		elif int(option) == 3:
+			show_plot(dataset, figure_title, report_title, "Morti", "MORTI")
+		elif int(option) == 4:
+			break
+		else:
+			print("Opzione selezionata non valida")
 
 
 #
