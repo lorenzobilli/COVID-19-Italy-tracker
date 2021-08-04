@@ -24,6 +24,28 @@ from utils import *
 
 #
 #   Brief:
+#       Creates and shows a scatter plot of the given value.
+#   Parameters:
+#       - dataset: Dataset to be used to generate plots.
+#       - figure_title: Global title of the plot window.
+#       - report_title: Title of the plot.
+#       - ylabel: Label used for the Y scale of the plot.
+#       - value_label: Value to be plotted.
+#
+def show_plot(dataset, figure_title, report_title, ylabel, value_label):
+	figure, report = mp.subplots(1)
+	figure.suptitle(figure_title)
+	mp.ylabel(ylabel)
+	report.set_title(report_title)
+	report.autoscale()
+	report.scatter(dataset["DATA"], dataset[value_label])
+	predictor = predict_data(dataset.copy(), value_label)
+	report.plot(dataset["DATA"], predictor, color="red")
+	mp.show()
+
+
+#
+#   Brief:
 #       Runs a report based on the given parameters.
 #   Parameters:
 #       - dataset_path: Path pointing to the CSV file used as dataset.
@@ -39,44 +61,45 @@ def show_report(dataset_path, region=None, begin=None, end=None):
 	dataset = cleanup_data(dataset, region)
 	dataset = elaborate_data(dataset)
 
-	figure, report = mp.subplots(1)
-	title = "COVID-19 - ANDAMENTO E REGRESSIONE LINEARE: "
+	figure_title = "COVID-19 - ANDAMENTO E REGRESSIONE LINEARE: "
 	if region is None:
-		title += " ITALIA"
+		figure_title += " ITALIA"
 	else:
-		title += " REGIONE " + region.value[1].upper()
-	figure.suptitle(title)
-	mp.ylabel("Nuovi positivi (%)")
+		figure_title += " REGIONE " + region.value[1].upper()
 
 	if begin is not None and end is not None:
-		report.set_title("Dal giorno " + str(begin) + " al giorno " + str(end))
+		report_title = "Dal giorno " + str(begin) + " al giorno " + str(end)
 		dataset = select_data_range(dataset, int(begin), int(end))
 	elif begin is not None and end is None:
-		report.set_title("Primi " + str(begin) + " giorni")
+		report_title = "Primi " + str(begin) + " giorni"
 		dataset = select_data_head(dataset, int(begin))
 	elif begin is None and end is not None:
-		report.set_title("Ultimi " + str(end) + " giorni")
+		report_title = "Ultimi " + str(end) + " giorni"
 		dataset = select_data_tail(dataset, int(end))
 	else:
-		report.set_title("Report globale")
-	report.autoscale()
-	report.scatter(dataset["DATA"], dataset["%"])
+		report_title = "Report globale"
 
-	predictor = predict_data(dataset.copy())
-	report.plot(dataset["DATA"], predictor, color="red")
+	while (True):
+		print("")
+		print(tabify(dataset))
 
-	print("")
-	print(tabify(dataset))
+		print("")
+		print("1) Mostra grafico regressione lineare % nuovi positivi")
+		print("2) Mostra grafico regressione lineare pazienti in T.I.")
+		print("3) Mostra grafico regressione lineare morti")
+		print("4) Indietro")
+		option = input(">: ")
 
-	print("")
-	print("1) Mostra grafico regressione lineare")
-	print("2) Indietro")
-	option = input(">: ")
-
-	if int(option) == 1:
-		mp.show()
-	else:
-		return
+		if int(option) == 1:
+			show_plot(dataset, figure_title, report_title, "Nuovi positivi (%)", "%")
+		elif int(option) == 2:
+			show_plot(dataset, figure_title, report_title, "Pazienti in terapia intensiva", "T.I.")
+		elif int(option) == 3:
+			show_plot(dataset, figure_title, report_title, "Morti", "MORTI")
+		elif int(option) == 4:
+			break
+		else:
+			print("Opzione selezionata non valida")
 
 
 #
