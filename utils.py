@@ -17,7 +17,7 @@
 
 
 import multiprocessing
-import tabulate
+from tabulate import tabulate
 
 
 #
@@ -36,4 +36,4 @@ cpus = multiprocessing.cpu_count()
 #       Formatted data in tabular, printable form.
 #
 def tabify(dataframe):
-	return tabulate.tabulate(dataframe, headers="keys", tablefmt="pretty", numalign="center", stralign="center")
+	return tabulate(dataframe, headers="keys", tablefmt="pretty", numalign="center", stralign="center")
