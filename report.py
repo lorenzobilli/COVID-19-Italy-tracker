@@ -14,8 +14,8 @@
 #   You should have received a copy of the GNU General Public License along with this program.
 #   If not, see <http://www.gnu.org/licenses/>.
 #
-
-
+import matplotlib.pyplot as plt
+import seaborn as sns
 import matplotlib.pyplot as mp
 
 from data import *
@@ -33,15 +33,11 @@ from utils import *
 #       - value_label: Value to be plotted.
 #
 def show_plot(dataset, figure_title, report_title, ylabel, value_label):
-	figure, report = mp.subplots(1)
-	figure.suptitle(figure_title)
-	mp.ylabel(ylabel)
-	report.set_title(report_title)
-	report.autoscale()
-	report.scatter(dataset["DATA"], dataset[value_label])
 	predictor = predict_data(dataset.copy(), value_label)
-	report.plot(dataset["DATA"], predictor, color="red")
-	mp.show()
+	sns.scatterplot(data=dataset, x="DATA", y=value_label)
+	mp.plot(dataset["DATA"], predictor, color="red")
+	plt.title(figure_title)
+	plt.show()
 
 
 #
@@ -79,7 +75,7 @@ def show_report(dataset_path, region=None, begin=None, end=None):
 	else:
 		report_title = "Report globale"
 
-	while (True):
+	while True:
 		print("")
 		print(tabify(dataset))
 

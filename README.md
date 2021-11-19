@@ -10,7 +10,7 @@ COVID-19 Italy Tracker utilizza gli stessi dati ufficiali del repository pubblic
 
 ## Requisiti
 
-Il programma è stato interamente scritto in Python 3, appoggiandosi alle librerie matplotlib, numpy, pandas e scikit-learn. E' consigliato l'utilizzo di Anaconda (o miniconda).
+Il programma è stato interamente scritto in Python 3, appoggiandosi alle librerie seaborn, numpy, pandas e scikit-learn. E' consigliato l'utilizzo di Anaconda (o miniconda).
 
 ## NOTA
 
