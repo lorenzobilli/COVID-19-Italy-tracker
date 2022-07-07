@@ -17,6 +17,7 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib.pyplot as mp
+import plotly.express as px
 
 from data import *
 from utils import *
@@ -32,12 +33,40 @@ from utils import *
 #       - ylabel: Label used for the Y scale of the plot.
 #       - value_label: Value to be plotted.
 #
-def show_plot(dataset, figure_title, report_title, ylabel, value_label):
+def _show_plot(dataset, figure_title, report_title, ylabel, value_label):
 	predictor = predict_data(dataset.copy(), value_label)
 	sns.scatterplot(data=dataset, x="DATA", y=value_label)
 	mp.plot(dataset["DATA"], predictor, color="red")
 	plt.title(figure_title)
 	plt.show()
+
+
+def show_plot(dataset, figure_title, report_title, ylabel, value_label):
+	fig = px.line(
+		dataset,
+		x="DATA",
+		y=value_label,
+		title=figure_title + "<br><sup>" + report_title + "</sup>",
+		labels={'x': "Data",
+				'y': ylabel},
+		line_shape="spline",
+		template="plotly_dark",
+	)
+	fig.show()
+
+
+def show_combined_plot(dataset, figure_title, report_title, ylabels, value_labels):
+	fig = px.line(
+		dataset,
+		x="DATA",
+		y=value_labels,
+		title=figure_title + "<br><sup>" + report_title + "</sup>",
+		labels={"x": "Data",
+				"y": ylabels},
+		#line_shape="linear",
+		template="plotly_dark"
+	)
+	fig.show()
 
 
 #
@@ -83,7 +112,8 @@ def show_report(dataset_path, region=None, begin=None, end=None):
 		print("1) Mostra grafico regressione lineare % nuovi positivi")
 		print("2) Mostra grafico regressione lineare pazienti in T.I.")
 		print("3) Mostra grafico regressione lineare morti")
-		print("4) Indietro")
+		print("4) Mostra grafico combinato")
+		print("5) Indietro")
 		option = input(">: ")
 
 		if int(option) == 1:
@@ -93,6 +123,8 @@ def show_report(dataset_path, region=None, begin=None, end=None):
 		elif int(option) == 3:
 			show_plot(dataset, figure_title, report_title, "Morti", "MORTI")
 		elif int(option) == 4:
+			show_combined_plot(dataset, figure_title, report_title, "", ["%", "T.I.", "MORTI"])
+		elif int(option) == 5:
 			break
 		else:
 			print("Opzione selezionata non valida")
